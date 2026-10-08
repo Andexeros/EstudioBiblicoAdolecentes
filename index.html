@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#080e13">
+  <meta name="description" content="Quince estudios bíblicos para adolescentes. Historias, enseñanzas esenciales y referencias para recorrer la Palabra de Dios.">
+  <title>Huellas · Estudios bíblicos 2026</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#lesson-content">Ir al contenido de la clase</a>
+  <header class="site-header">
+    <a class="brand" href="#jonas" aria-label="Huellas, inicio"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M5 32 17 8l7 14-5 10Z" fill="currentColor"/><path d="m24 6 12 26H24l6-10Z" fill="currentColor" opacity=".5"/></svg><span>huellas<span class="brand-caption">ESTUDIOS BÍBLICOS</span></span></a>
+    <div class="header-right"><span class="collection-label">COLECCIÓN <b>2026</b></span><button id="open-catalog" class="catalog-button" aria-haspopup="dialog"><span>Las 15 clases</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button></div>
+  </header>
+  <main>
+    <section class="stage" aria-labelledby="hero-title">
+      <div class="stage-copy" id="stage-copy"><p class="eyebrow"><span id="lesson-number">01 / 15</span><span class="eyebrow-line"></span><span id="lesson-category">DECISIONES</span></p><p class="lesson-name" id="lesson-name">Jonás</p><h1 id="hero-title">Tus decisiones<br>importan.</h1><p class="hero-description" id="hero-description">Una huida, una tormenta y una segunda oportunidad. Dios puede usar tu obediencia para alcanzar a otros.</p><div class="hero-action"><button id="explore-lesson" class="primary-button">Explorar la clase<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h5a3 3 0 0 1 3 3v13a4 4 0 0 0-4-2H5zM19 4h-3a3 3 0 0 0-3 3v13a4 4 0 0 1 4-2h2z"/></svg></button><span id="reading-time">5 min de lectura</span></div></div>
+      <div class="art-stage" id="art-stage"><div class="art-word" id="art-word" aria-hidden="true">JONÁS</div><div class="art-halo"></div><canvas id="art-canvas" aria-label="Ilustración geométrica de la clase de Jonás" role="img"></canvas><div class="art-caption"><span class="art-rule"></span><span id="art-caption">Una segunda oportunidad</span><span class="art-rule"></span></div><span class="art-hint">MOVÉ EL CURSOR PARA EXPLORAR</span></div>
+      <div class="stage-bottom"><p class="stage-bottom-note">La Palabra. Tu vida.<br><span>Un encuentro a la vez.</span></p><nav class="lesson-navigator" aria-label="Recorrer las clases"><button id="previous-lesson" class="circle-button" aria-label="Clase anterior"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></button><div><span id="navigator-title">Jonás</span><div id="lesson-dots" class="lesson-dots"></div></div><button id="next-lesson" class="circle-button" aria-label="Clase siguiente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg></button></nav><button class="scroll-button" id="scroll-lesson">DESCUBRÍ EL ESTUDIO<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18m-5-5 5 5 5-5"/></svg></button></div>
+    </section>
+    <div id="lesson-content" class="lesson-content" tabindex="-1"></div>
+  </main>
+  <footer class="site-footer"><a class="footer-brand" href="#jonas">huellas.</a><p>Estudios bíblicos para adolescentes · 2026</p><span>Volvé a la Palabra.</span></footer>
+  <dialog id="catalog-dialog" class="catalog-dialog" aria-labelledby="catalog-title"><div class="catalog-header"><div><p class="eyebrow">COLECCIÓN 2026</p><h2 id="catalog-title">Cada clase,<br>una huella.</h2></div><button id="close-catalog" class="circle-button" aria-label="Cerrar lista de clases"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div><p class="catalog-intro">Elegí una historia. Encontrá su enseñanza. Volvé a sus pasajes.</p><div id="catalog-grid" class="catalog-grid"></div></dialog>
+  <div id="status" class="sr-only" role="status" aria-live="polite"></div>
+  <noscript><p class="noscript">Activá JavaScript para recorrer esta colección interactiva.</p></noscript>
+</body>
+</html>

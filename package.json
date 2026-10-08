@@ -1,0 +1,13 @@
+{
+  "name": "huellas-estudios-biblicos",
+  "version": "1.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Una colección interactiva de quince estudios bíblicos para adolescentes.",
+  "scripts": {
+    "dev": "node serve.mjs",
+    "build": "node build.mjs",
+    "start": "node serve.mjs dist"
+  },
+  "engines": { "node": ">=20" }
+}
