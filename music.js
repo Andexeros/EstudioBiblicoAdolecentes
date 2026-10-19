@@ -48,6 +48,34 @@ export function mountMusic(application, tracks = musicPlaylist) {
   const get = id => root.querySelector('#' + id);
   const toggle = get('hm-toggle'), panel = get('hm-panel'), seek = get('hm-seek');
   const engine = new MusicEngine(tracks, audio, { settings, remember, baseUrl: document.baseURI, online: () => navigator.onLine !== false });
+  const startEvents = ['click', 'pointerup', 'touchend', 'keydown'];
+  let startPending = !settings.muted && settings.volume > 0, startInFlight = false;
+  function cancelAutomaticStart() {
+    startPending = false;
+    for (const name of startEvents) document.removeEventListener(name, startOnInteraction, true);
+  }
+  function startOnInteraction(event) {
+    if (!startPending || !event.isTrusted || application.hidden || application.inert || document.visibilityState === 'hidden') return;
+    if (event.type === 'keydown' && (event.repeat || !['Enter', ' '].includes(event.key))) return;
+    if (event.type === 'pointerup' && (event.pointerType === 'mouse' || event.isPrimary === false)) return;
+    if (event.button !== undefined && event.button !== 0) return;
+    // An explicit player action takes priority, especially pause, mute and volume.
+    if (panel.contains(event.target) || event.target.closest?.('#auth-logout')) { cancelAutomaticStart(); return; }
+    if (engine.state.muted || engine.state.volume === 0) { cancelAutomaticStart(); return; }
+    if (startInFlight) return;
+    if (engine.state.intent || engine.state.playing) { cancelAutomaticStart(); return; }
+    startInFlight = true;
+    // Keep play() inside the real gesture. touchend also covers swipes that cancel Pointer Events.
+    engine.play().then(started => {
+      startInFlight = false;
+      if (started || !engine.state.blocked) cancelAutomaticStart();
+      // If this gesture was denied, a later real tap may still authorize playback.
+    });
+  }
+  if (startPending) {
+    for (const name of startEvents) document.addEventListener(name, startOnInteraction, { capture: true, passive: true });
+  }
+  for (const name of ['pointerdown', 'click', 'keydown', 'input']) panel.addEventListener(name, cancelAutomaticStart, { capture: true, passive: true });
   let opened = false, closeTimer, animationFrame, pointer = null, suppressClickUntil = 0, seeking = false;
   let position, bounds, dragBounds, lastTrack = null, lastAnnouncement = '', scrollTimer;
   const reduced = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
@@ -224,17 +252,17 @@ export function mountMusic(application, tracks = musicPlaylist) {
       nexttrack: () => engine.next(), previoustrack: () => engine.previous(),
       seekto: detail => engine.seek(detail.seekTime), seekbackward: detail => engine.seek(engine.state.time - (detail.seekOffset || 10)),
       seekforward: detail => engine.seek(engine.state.time + (detail.seekOffset || 10)) };
-    for (const [action, callback] of Object.entries(actions)) { try { navigator.mediaSession.setActionHandler(action, callback); } catch { /* Unsupported actions are simply omitted. */ } }
+    for (const [action, callback] of Object.entries(actions)) { try { navigator.mediaSession.setActionHandler(action, detail => { cancelAutomaticStart(); callback(detail); }); } catch { /* Unsupported actions are simply omitted. */ } }
   }
   window.addEventListener('resize', resize, { passive: true });
   window.visualViewport?.addEventListener('resize', resize, { passive: true });
   window.visualViewport?.addEventListener('scroll', resize, { passive: true });
   window.addEventListener('scroll', () => { clearTimeout(scrollTimer); scrollTimer = setTimeout(avoidControls, 120); }, { passive: true });
-  window.addEventListener('pagehide', () => engine.pause());
+  window.addEventListener('pagehide', () => { cancelAutomaticStart(); engine.pause(); });
   const gate = new MutationObserver(() => {
     const available = !application.hidden && !application.inert;
     root.hidden = !available;
-    if (!available) { closePanel(); engine.pause(); }
+    if (!available) { cancelAutomaticStart(); closePanel(); engine.pause(); }
     else resize();
   });
   gate.observe(application, { attributes: true, attributeFilter: ['hidden', 'inert'] });
