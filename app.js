@@ -1,5 +1,10 @@
-import { lessons } from './lessons.js';
 import { GeometryArt } from './art.js';
+
+let mounted = false;
+export function mountHuellas(lessons) {
+if (mounted) return;
+if (!Array.isArray(lessons) || !lessons.length) throw new Error('No hay clases disponibles.');
+mounted = true;
 
 const $ = id => document.getElementById(id);
 const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -164,3 +169,4 @@ $('art-stage').addEventListener('touchend',e=>{
 
 render(false);
 if(initialRoute.section)requestAnimationFrame(()=>$(initialRoute.section)?.scrollIntoView({behavior:'instant'}));
+}

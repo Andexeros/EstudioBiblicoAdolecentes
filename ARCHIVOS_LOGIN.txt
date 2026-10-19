@@ -1,0 +1,57 @@
+HUELLAS - PARCHE DE REGISTRO CON NEON AUTH
+19/10/2026
+
+Reemplazar estos archivos en el repositorio actual, conservando las rutas.
+No borrar ni reemplazar los otros archivos del proyecto.
+Leer CONFIGURAR_LOGIN.md antes de activar el despliegue.
+
+ARCHIVOS MODIFICADOS (7)
+README.md
+app.js
+build.mjs
+index.html
+package.json
+serve.mjs
+vercel.json
+
+ARCHIVOS NUEVOS (19)
+.env.example
+.gitignore
+ARCHIVOS_LOGIN.txt
+CONFIGURAR_LOGIN.md
+api/auth-return.js
+api/auth/[...path].js
+api/lessons.js
+api/session.js
+api/users.js
+auth.css
+auth.js
+neon-login.sql
+package-lock.json
+server/access.js
+server/api.js
+server/auth.js
+server/http.js
+tests/auth.test.mjs
+tests/public-build.test.mjs
+
+CONSERVADOS, FUERA DEL ZIP
+Las 15 clases y sus 161 referencias (lessons.js), art.js, styles.css,
+identity.css, install.js, atlas-a.webp, atlas-b.webp, atlas-c.webp,
+el logo, los iconos, la tipografia, manifest.webmanifest y el resto
+de los recursos originales.
+
+VERIFICACIONES REALIZADAS
+18 pruebas de servidor y compilacion (npm test).
+18 escenarios DOM de registro, verificacion, recuperacion y sesion.
+16 escenarios DOM de instalacion PWA.
+Navegacion y renderer real de las 15 clases en escritorio y mobile,
+con canvas y navegador simulados, y 17 comprobaciones del scheduler.
+Instalacion limpia de dependencias y sintaxis de los modulos.
+Comparacion byte a byte de los contenidos y recursos preservados.
+
+PENDIENTE EN PRODUCCION
+Cargar variables privadas en Vercel y ejecutar neon-login.sql en Neon.
+Probar registro y correo real, recuperacion, persistencia de cookies,
+Google solo si se configura, y la instalacion en Android e iOS.
+No se realizo un despliegue ni una prueba visual en navegador real.

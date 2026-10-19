@@ -1,0 +1,81 @@
+/* Access screens and account controls. Original class artwork and styles are preserved. */
+[hidden]{display:none!important}
+.auth-screen{position:relative;max-width:1320px;min-height:100svh;margin:auto;padding:64px 6%;display:grid;grid-template-columns:1.1fr 1fr;gap:clamp(45px,7vw,110px);align-items:center}
+.auth-brand{display:inline-flex;align-items:center;gap:13px;margin-bottom:68px}
+.auth-brand>img{width:48px;height:48px}
+.auth-brand>span{font:600 38px/1 var(--display);letter-spacing:-1.7px}
+.auth-brand>span>span{display:block;margin-top:10px;font:10px/1.5 var(--body);letter-spacing:1.7px;color:var(--muted)}
+.auth-eyebrow{font:12px/1.7 monospace;letter-spacing:1.5px;color:#9cdbf4;margin:0 0 19px}
+.auth-intro h1{font-size:clamp(44px,4.8vw,72px);letter-spacing:-2.6px;line-height:1.09;margin:0 0 24px}
+.auth-intro h1>span{color:#9cdbf4}
+.auth-intro-copy{max-width:355px;color:var(--muted);font-size:17px;line-height:1.8;margin-bottom:16px}
+.auth-book{position:relative;width:270px;height:172px;overflow:hidden;margin-top:5px;pointer-events:none}
+.auth-book::before{content:'';position:absolute;inset:20px 20px -45px;background:radial-gradient(ellipse,#9cdbf416,transparent 68%)}
+.auth-book img{position:relative;width:215px;height:215px;opacity:.19;transform:rotate(-9deg);margin-left:14px}
+.auth-intro-note{margin:18px 0 0;font:12px/1.7 monospace;color:#8b9fa6;letter-spacing:1px}
+.auth-panel{width:100%;max-width:450px;justify-self:end;padding:36px;border:1px solid #9cdbf425;border-radius:13px;background:#10191fbd;box-shadow:0 25px 80px #00000020}
+.auth-panel>.auth-eyebrow{font-size:10px;letter-spacing:1.8px;margin-bottom:14px}
+.auth-panel h2{font:600 30px/1.2 var(--display);letter-spacing:-.9px;margin-bottom:12px;text-wrap:balance}
+.auth-description{color:var(--muted);font-size:14px;line-height:1.7;margin-bottom:23px;min-height:47px}
+.auth-tabs{display:flex;gap:4px;padding:4px;border:1px solid #ffffff10;border-radius:7px;background:#080e1370;margin-bottom:25px}
+.auth-tabs button{flex:1;min-height:41px;padding:8px;background:transparent;color:#98acb4;border-radius:4px;font-size:14px}
+.auth-tabs button[aria-selected=true]{background:#9cdbf415;color:#c8eafa;box-shadow:0 1px 5px #00000020}
+.auth-panel fieldset{border:0;padding:0;margin:0;min-width:0}
+.auth-field{margin:0 0 17px}
+.auth-field label{display:block;font-size:13px;color:#cbd9dd;margin-bottom:7px}
+.auth-field input{width:100%;min-height:47px;padding:11px 13px;border:1px solid #ffffff23;border-radius:5px;background:#080e1370;font:16px/1.4 var(--body);color:var(--text);outline-offset:3px}
+.auth-field input::placeholder{color:#71858d;font-size:14px}
+.auth-field input:focus{border-color:#9cdbf4}
+.auth-label-row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.auth-link{padding:4px 0;min-height:32px;border:0;background:transparent;font-size:12px;color:#a9dcf2;text-align:left}
+.auth-link:hover{text-decoration:underline;text-underline-offset:4px}
+.auth-label-row>.auth-link{margin-top:-7px}
+.auth-password-wrap{position:relative}
+.auth-password-wrap input{padding-right:47px}
+.auth-toggle-password{position:absolute;right:3px;top:3px;width:42px;height:41px;background:transparent;color:#8ca5af;border-radius:4px}
+.auth-toggle-password svg{width:19px;height:19px}
+.auth-remember{display:flex;align-items:center;gap:9px;min-height:36px;font-size:12px;color:#a1b1b8;margin:-2px 0 16px;cursor:pointer}
+.auth-remember input{width:16px;height:16px;accent-color:#9cdbf4;flex-shrink:0}
+.auth-submit{display:block;width:100%;min-height:47px;padding:12px 18px;border-radius:5px;background:#9cdbf4;color:#08151b;font-size:14px;font-weight:600}
+.auth-submit:hover{background:#b6e6fa}
+.auth-message{font-size:13px;line-height:1.7;margin:16px 0 0;color:#a4bac3;overflow-wrap:anywhere}
+.auth-message:empty{display:none}
+.auth-message[data-error=true]{color:#f3aaa7}
+.auth-secondary{display:flex;align-items:center;justify-content:center;gap:12px;min-height:45px;width:100%;padding:10px 15px;background:#ffffff04;color:#d7e6eb;border:1px solid #ffffff22;border-radius:5px;font-size:14px}
+.auth-secondary:hover{border-color:#9cdbf480;background:#9cdbf409}
+#auth-retry{margin-top:15px}
+.auth-verify-actions{display:flex;justify-content:space-between;gap:16px;margin-top:14px;flex-wrap:wrap}
+.auth-back{display:block;margin-top:15px}
+.auth-google{margin-top:25px}
+.auth-google>span{display:flex;align-items:center;gap:14px;font-size:11px;color:#81979f;margin-bottom:15px}
+.auth-google>span::before,.auth-google>span::after{content:'';height:1px;flex:1;background:#ffffff16}
+.auth-google svg{width:18px;height:18px;stroke:none}
+.auth-register-note{font-size:11px;line-height:1.8;color:#93a7af;margin:21px 0 0}
+#huellas-app>.site-header .header-right{gap:22px}
+.auth-account-button{display:grid;place-items:center;flex-shrink:0;background:transparent;color:#a3bcc7;border:1px solid #ffffff25;border-radius:50%;width:40px;height:40px}
+.auth-account-button:hover{color:#9cdbf4;border-color:#9cdbf4}
+.auth-account-button svg{width:20px;height:20px}
+.auth-dialog{width:min(430px,calc(100% - 28px));max-height:89svh;padding:28px;background:#0d151b;color:var(--text);border:1px solid #9cdbf42e;border-radius:12px;overflow:auto;overscroll-behavior:contain}
+.auth-dialog::backdrop{background:#02080ddd;backdrop-filter:blur(10px)}
+.auth-dialog-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:23px}
+.auth-dialog-heading h2{font:600 27px/1.2 var(--display);letter-spacing:-.7px;margin:5px 0 0}
+.auth-dialog-heading .auth-eyebrow{margin-bottom:8px}
+.auth-account-name{font:600 22px/1.4 var(--display);margin-bottom:4px;overflow-wrap:anywhere}
+.auth-account-email{color:var(--muted);font-size:14px;margin-bottom:25px;overflow-wrap:anywhere}
+.auth-dialog>.auth-secondary+.auth-secondary{margin-top:10px}
+.auth-users-dialog{width:min(880px,calc(100% - 28px));padding:32px}
+.auth-users-help{font-size:13px;color:var(--muted);margin-bottom:20px}
+.auth-users-table-wrap{overflow:auto;margin-top:20px;border:1px solid #ffffff15;border-radius:5px}
+.auth-users-table{width:100%;border-collapse:collapse;text-align:left;font-size:13px;min-width:480px}
+.auth-users-table th{padding:13px 17px;color:#9cdbf4;background:#9cdbf407;font-weight:400;font-size:12px}
+.auth-users-table td{padding:16px 17px;border-top:1px solid #ffffff12;vertical-align:top}
+.auth-users-table td strong{display:block;font-weight:400;color:#e0e9ec;overflow-wrap:anywhere}
+.auth-users-table td span{display:block;font-size:12px;color:var(--muted);overflow-wrap:anywhere}
+.auth-users-pagination{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:20px}
+.auth-users-pagination .auth-secondary{width:auto;min-width:100px;font-size:12px}
+.auth-users-pagination>span{color:var(--muted);font-size:12px}
+.auth-screen :focus-visible,.auth-dialog :focus-visible,.auth-account-button:focus-visible{outline-color:#9cdbf4}
+@media(max-width:1000px){.auth-screen{gap:40px;padding:45px 5%;grid-template-columns:1fr 1fr}.auth-brand{margin-bottom:48px}.auth-brand>span{font-size:32px}.auth-brand>span>span{letter-spacing:1px;font-size:9px}.auth-intro h1{font-size:48px}.auth-panel{padding:28px}#huellas-app .collection-label{display:none}}
+@media(max-width:720px){.auth-screen{display:block;padding:30px 6% 40px;max-width:500px}.auth-brand{margin-bottom:33px;gap:10px}.auth-brand>img{width:38px;height:38px}.auth-brand>span{font-size:30px}.auth-brand>span>span{font-size:9px}.auth-intro>.auth-eyebrow,.auth-book,.auth-intro-note{display:none}.auth-intro h1{font-size:39px;letter-spacing:-1.4px;margin-bottom:15px}.auth-intro-copy{font-size:14px;line-height:1.75;margin-bottom:26px;max-width:360px}.auth-panel{max-width:none;padding:25px 23px}.auth-panel h2{font-size:27px}.auth-description{min-height:0;font-size:14px}#huellas-app>.site-header .header-right{gap:12px}.auth-users-dialog{padding:24px 19px}.auth-users-pagination .auth-secondary{min-width:85px}.auth-users-table td,.auth-users-table th{padding:12px}}
+@media(max-width:370px){.auth-screen{padding:25px 5% 35px}.auth-brand>span>span{font-size:8px}.auth-intro h1{font-size:35px}.auth-panel{padding:23px 19px}.auth-account-button{width:35px;height:35px}#huellas-app>.site-header .header-right{gap:8px}}
+@media print{.auth-screen,.auth-dialog,.auth-account-button{display:none!important}}

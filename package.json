@@ -1,13 +1,18 @@
 {
   "name": "huellas-estudios-biblicos",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
   "type": "module",
   "description": "Estudios bíblicos para adolescentes de San Rafael.",
   "scripts": {
-    "dev": "node serve.mjs",
+    "dev": "node --env-file-if-exists=.env.local serve.mjs",
     "build": "node build.mjs",
-    "start": "node serve.mjs dist"
+    "start": "node --env-file-if-exists=.env.local serve.mjs dist",
+    "test": "node --test tests/*.test.mjs"
   },
-  "engines": { "node": ">=20" }
+  "engines": { "node": "24.x" },
+  "dependencies": {
+    "@neondatabase/auth": "0.6.0-beta",
+    "@neondatabase/serverless": "1.2.0"
+  }
 }

@@ -1,12 +1,14 @@
 # Huellas · Estudios Bíblicos
 
-Versión 1.1.0 · Identidad e instalación · 19/10/2026. Mantiene las quince clases y sus 161 referencias, ilustraciones, animaciones y navegación original. Todos los archivos que necesitás subir están en una misma carpeta.
+Versión 1.2.0 · Registro con Neon Auth · 19/10/2026. Mantiene las quince clases y sus 161 referencias, ilustraciones, animaciones, navegación e instalación PWA. El acceso a las clases requiere una cuenta con correo verificado.
+
+**Para activar el registro:** seguí [CONFIGURAR_LOGIN.md](CONFIGURAR_LOGIN.md). Incluye el SQL, las variables privadas de Vercel y las pruebas de registro y recuperación. Subir los archivos sin configurar esas variables todavía no habilita el acceso.
 
 ## Actualizar el repositorio que ya creaste
 
 1. Descargá el ZIP y usá **Extraer todo** en Windows.
 2. Abrí la carpeta extraída y seleccioná todos sus archivos descomprimidos.
-3. En la página principal de tu repositorio de GitHub, elegí **Add file → Upload files** y arrastrá esos archivos.
+3. En la página principal de tu repositorio de GitHub, elegí **Add file → Upload files** y arrastrá esos archivos y las carpetas `api`, `server` y `tests` completas.
 4. Confirmá con **Commit changes**. Los archivos con el mismo nombre actualizan la versión anterior.
 5. Revisá el nuevo despliegue de Vercel, que debe utilizar ese último commit.
 
@@ -25,15 +27,15 @@ Probá la instalación en la dirección **HTTPS publicada en Vercel**. Abrir `in
 
 ## Configuración de Vercel
 
-La configuración está en `vercel.json`: framework **Other**, comando de compilación **npm run build**, carpeta de salida **dist**. No requiere variables de entorno, servicios de IA ni dependencias de npm.
+La configuración está en `vercel.json`: framework **Other**, instalación **npm ci --omit=peer**, compilación **npm run build**, carpeta de salida **dist**, Node.js **24.x**. El registro utiliza Neon Auth y PostgreSQL; sus variables privadas se cargan en Vercel según `CONFIGURAR_LOGIN.md`.
 
 La carpeta `dist` se genera durante la compilación. No necesitás crearla ni subirla a GitHub.
 
 ## Editar y probar
 
-`lessons.js` contiene las quince clases, sus colores y las 161 referencias bíblicas. `references-provenance.json` conserva el origen de cada referencia en los PDF. `styles.css` define el diseño; `app.js` controla la navegación y `art.js` las ilustraciones geométricas. Los tres archivos `atlas-*.webp` contienen las ilustraciones originales.
+`lessons.js` contiene las quince clases, sus colores y las 161 referencias bíblicas. Se conserva en el repositorio, pero ya no se publica como archivo estático: el servidor lo entrega mediante `/api/lessons` después de validar la sesión. `references-provenance.json` conserva el origen de cada referencia en los PDF. `styles.css` define el diseño; `app.js` controla la navegación y `art.js` las ilustraciones geométricas. Los tres archivos `atlas-*.webp` contienen las ilustraciones originales.
 
-Con Node.js 20 o superior, ejecutá `npm run dev` y abrí `http://localhost:4173`. Para compilar: `npm run build`. Para ver el resultado compilado: `npm start`.
+Con Node.js 24, ejecutá `npm ci --omit=peer` y `npm test`. Para compilar: `npm run build`. El desarrollo local requiere las variables y el dominio local autorizado en Neon; consultá la guía de acceso. `npm run dev` genera y sirve únicamente `dist/`, junto con las API, en `http://localhost:4173`.
 
 ## Contenido y recursos
 
@@ -41,4 +43,4 @@ Se conservaron las historias, puntos clave, conclusiones y todas las referencias
 
 Las ilustraciones se generaron para el proyecto. La licencia de la tipografía URW Gothic Demi está en `FONT-LICENSE.txt`. El diseño contempla celulares, navegación por teclado y preferencias de movimiento reducido.
 
-La compilación y las pruebas funcionales de contenido, navegación y estados de instalación pasaron. La instalación real y la revisión visual en navegador requieren las pruebas de `GUIA_PWA.md`.
+Las pruebas del servidor usan respuestas simuladas de Neon y el SDK oficial real. La entrega de correos, el registro real y la instalación en dispositivos deben comprobarse después del despliegue, según `CONFIGURAR_LOGIN.md` y `GUIA_PWA.md`.

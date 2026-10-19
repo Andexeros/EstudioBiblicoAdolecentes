@@ -18,20 +18,58 @@
   <link rel="apple-touch-icon" href="huellas-apple-touch-180-v2.png" sizes="180x180">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="identity.css?v=20261019">
+  <link rel="stylesheet" href="auth.css?v=20261019-login1">
   <script type="module" src="install.js?v=20261019"></script>
-  <script type="module" src="app.js?v=20261019"></script>
+  <script type="module" src="auth.js?v=20261019-login1"></script>
 </head>
 <body>
+  <main id="auth-screen" class="auth-screen" aria-labelledby="auth-heading">
+    <div class="auth-intro">
+      <a class="auth-brand" href="/" aria-label="Huellas, inicio"><img src="huellas-biblia.svg" width="48" height="48" alt=""><span>huellas<span>ESTUDIOS BÍBLICOS · ADOLESCENTES</span></span></a>
+      <p class="auth-eyebrow">SAN RAFAEL · COLECCIÓN 2026</p>
+      <h1 id="auth-heading">Cada encuentro<br>deja una <span>huella.</span></h1>
+      <p class="auth-intro-copy">Historias que nos acercan a Dios. Enseñanzas para llevar a tu vida. Un encuentro a la vez.</p>
+      <div class="auth-book" aria-hidden="true"><img src="huellas-biblia.svg" width="260" height="260" alt=""></div>
+      <p class="auth-intro-note">La Palabra. Tu vida.</p>
+    </div>
+    <section class="auth-panel" aria-labelledby="auth-title">
+      <p class="auth-eyebrow">TU LUGAR EN HUELLAS</p>
+      <h2 id="auth-title">Volvé a la Palabra.</h2>
+      <p id="auth-description" class="auth-description">Ingresá a tu cuenta para explorar las clases.</p>
+      <div id="auth-tabs" class="auth-tabs" role="tablist" aria-label="Acceso a Huellas">
+        <button id="auth-login-tab" type="button" role="tab" aria-selected="true" aria-controls="auth-form" data-mode="login">Ingresar</button>
+        <button id="auth-register-tab" type="button" role="tab" aria-selected="false" aria-controls="auth-form" tabindex="-1" data-mode="register">Crear cuenta</button>
+      </div>
+      <form id="auth-form" role="tabpanel" aria-labelledby="auth-login-tab" autocomplete="on" aria-busy="true">
+        <fieldset id="auth-fields" disabled>
+          <div id="auth-name-field" class="auth-field" hidden><label for="auth-name">Tu nombre</label><input id="auth-name" name="name" autocomplete="name" minlength="2" maxlength="80" placeholder="¿Cómo te llamás?"></div>
+          <div id="auth-email-field" class="auth-field"><label for="auth-email">Correo electrónico</label><input id="auth-email" name="email" type="email" autocomplete="username" inputmode="email" autocapitalize="none" spellcheck="false" maxlength="254" required placeholder="tu@email.com"></div>
+          <div id="auth-password-field" class="auth-field"><div class="auth-label-row"><label for="auth-password">Contraseña</label><button id="auth-forgot" class="auth-link" type="button">¿La olvidaste?</button></div><div class="auth-password-wrap"><input id="auth-password" name="password" type="password" autocomplete="current-password" minlength="8" maxlength="128" required><button id="auth-toggle-password" class="auth-toggle-password" type="button" aria-label="Mostrar contraseña" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
+          <div id="auth-confirm-field" class="auth-field" hidden><label for="auth-confirm">Repetí la nueva contraseña</label><input id="auth-confirm" name="confirm-password" type="password" autocomplete="new-password" minlength="8" maxlength="128"></div>
+          <div id="auth-code-field" class="auth-field" hidden><label for="auth-code">Código de verificación</label><input id="auth-code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{4,10}" maxlength="10" placeholder="000000"></div>
+          <label id="auth-remember-field" class="auth-remember"><input id="auth-remember" name="remember" type="checkbox" checked><span>Recordarme en este dispositivo</span></label>
+          <button id="auth-submit" class="auth-submit" type="submit">Ingresar</button>
+        </fieldset>
+      </form>
+      <p id="auth-message" class="auth-message" role="status" aria-live="polite">Comprobando tu sesión…</p>
+      <button id="auth-retry" class="auth-secondary" type="button" hidden>Volver a intentar</button>
+      <div id="auth-verify-actions" class="auth-verify-actions" hidden><button id="auth-resend" class="auth-link" type="button">Reenviar código</button><button id="auth-other-account" class="auth-link" type="button">Usar otra cuenta</button></div>
+      <button id="auth-back" class="auth-link auth-back" type="button" hidden>Volver a ingresar</button>
+      <div id="auth-google" class="auth-google" hidden><span>o continuá con</span><button id="auth-google-button" class="auth-secondary" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.2c0-.7-.1-1.4-.2-2.1H12v4h5.1c-.2 1.2-.9 2.2-1.9 2.9v2.5h3.2c1.9-1.8 2.6-4.2 2.6-7.3Z" fill="#4285f4"/><path d="M12 21c2.7 0 4.9-.9 6.5-2.4l-3.2-2.5c-.9.6-2 .9-3.3.9-2.6 0-4.8-1.7-5.6-4H3.1v2.6A9.8 9.8 0 0 0 12 21Z" fill="#34a853"/><path d="M6.4 13c-.2-.6-.3-1.2-.3-1.8s.1-1.2.3-1.8V6.8H3.1A9.8 9.8 0 0 0 2 11.2c0 1.6.4 3.1 1.1 4.4L6.4 13Z" fill="#fbbc05"/><path d="M12 5.4c1.5 0 2.7.5 3.7 1.4l2.8-2.7A9.6 9.6 0 0 0 12 1.4a9.8 9.8 0 0 0-8.9 5.4l3.3 2.6c.8-2.3 3-4 5.6-4Z" fill="#ea4335"/></svg>Google</button></div>
+      <p id="auth-register-note" class="auth-register-note" hidden>El equipo de Huellas podrá consultar tu nombre, correo y último acceso. Tu cuenta es personal.</p>
+    </section>
+  </main>
+  <div id="huellas-app" hidden inert>
   <a class="skip-link" href="#lesson-content">Ir al contenido de la clase</a>
   <header class="site-header">
     <a class="brand" href="#jonas" aria-label="Huellas · Estudios Bíblicos para adolescentes, inicio"><svg class="bible-mark" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 12 14 9H5v20h9l6 3 6-3h9V9h-9Z" fill="currentColor" opacity=".1"/><g fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12 14 9H5v20h9l6 3 6-3h9V9h-9Z"/><path d="M20 12v20M9 15h4l3 1.5M9 20h4l3 1.5M31 15h-4l-3 1.5M31 20h-4l-3 1.5"/></g></svg><span>huellas<span class="brand-caption">ESTUDIOS BÍBLICOS<span class="brand-audience"> · ADOLESCENTES</span></span></span></a>
-    <div class="header-right"><span class="collection-label">COLECCIÓN <b>2026</b></span><button id="open-catalog" class="catalog-button" aria-haspopup="dialog"><span>Las 15 clases</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button></div>
+    <div class="header-right"><span class="collection-label">COLECCIÓN <b>2026</b></span><button id="account-button" class="auth-account-button" type="button" aria-haspopup="dialog" aria-controls="account-dialog" aria-label="Mi cuenta"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 21v-3a7 7 0 0 1 14 0v3"/></svg></button><button id="open-catalog" class="catalog-button" aria-haspopup="dialog"><span>Las 15 clases</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button></div>
   </header>
   <main>
     <section class="stage" aria-labelledby="hero-title">
-      <div class="stage-copy" id="stage-copy"><p class="eyebrow"><span id="lesson-number">01 / 15</span><span class="eyebrow-line"></span><span id="lesson-category">DECISIONES</span></p><p class="lesson-name" id="lesson-name">Jonás</p><h1 id="hero-title">Tus decisiones<br>importan.</h1><p class="hero-description" id="hero-description">Una huida, una tormenta y una segunda oportunidad. Dios puede usar tu obediencia para alcanzar a otros.</p><div class="hero-action"><button id="explore-lesson" class="primary-button">Explorar la clase<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h5a3 3 0 0 1 3 3v13a4 4 0 0 0-4-2H5zM19 4h-3a3 3 0 0 0-3 3v13a4 4 0 0 1 4-2h2z"/></svg></button><span id="reading-time">5 min de lectura</span></div></div>
-      <div class="art-stage" id="art-stage"><div class="art-word" id="art-word" aria-hidden="true">JONÁS</div><div class="art-halo"></div><canvas id="art-canvas" aria-label="Ilustración geométrica de la clase de Jonás" role="img"></canvas><div class="art-caption"><span class="art-rule"></span><span id="art-caption">Una segunda oportunidad</span><span class="art-rule"></span></div><span class="art-hint">MOVÉ EL CURSOR PARA EXPLORAR</span></div>
-      <div class="stage-bottom"><p class="stage-bottom-note">La Palabra. Tu vida.<br><span>Un encuentro a la vez.</span></p><nav class="lesson-navigator" aria-label="Recorrer las clases"><button id="previous-lesson" class="circle-button" aria-label="Clase anterior"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></button><div><span id="navigator-title">Jonás</span><div id="lesson-dots" class="lesson-dots"></div></div><button id="next-lesson" class="circle-button" aria-label="Clase siguiente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg></button></nav><button class="scroll-button" id="scroll-lesson">DESCUBRÍ EL ESTUDIO<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18m-5-5 5 5 5-5"/></svg></button></div>
+      <div class="stage-copy" id="stage-copy"><p class="eyebrow"><span id="lesson-number"></span><span class="eyebrow-line"></span><span id="lesson-category"></span></p><p class="lesson-name" id="lesson-name"></p><h1 id="hero-title"></h1><p class="hero-description" id="hero-description"></p><div class="hero-action"><button id="explore-lesson" class="primary-button">Explorar la clase<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h5a3 3 0 0 1 3 3v13a4 4 0 0 0-4-2H5zM19 4h-3a3 3 0 0 0-3 3v13a4 4 0 0 1 4-2h2z"/></svg></button><span id="reading-time"></span></div></div>
+      <div class="art-stage" id="art-stage"><div class="art-word" id="art-word" aria-hidden="true"></div><div class="art-halo"></div><canvas id="art-canvas" aria-label="Ilustración geométrica de la clase" role="img"></canvas><div class="art-caption"><span class="art-rule"></span><span id="art-caption"></span><span class="art-rule"></span></div><span class="art-hint">MOVÉ EL CURSOR PARA EXPLORAR</span></div>
+      <div class="stage-bottom"><p class="stage-bottom-note">La Palabra. Tu vida.<br><span>Un encuentro a la vez.</span></p><nav class="lesson-navigator" aria-label="Recorrer las clases"><button id="previous-lesson" class="circle-button" aria-label="Clase anterior"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></button><div><span id="navigator-title"></span><div id="lesson-dots" class="lesson-dots"></div></div><button id="next-lesson" class="circle-button" aria-label="Clase siguiente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg></button></nav><button class="scroll-button" id="scroll-lesson">DESCUBRÍ EL ESTUDIO<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18m-5-5 5 5 5-5"/></svg></button></div>
     </section>
     <div id="lesson-content" class="lesson-content" tabindex="-1"></div>
   </main>
@@ -47,6 +85,9 @@
   </dialog>
   <div id="install-status" class="sr-only" role="status" aria-live="polite"></div>
   <div id="status" class="sr-only" role="status" aria-live="polite"></div>
+  <dialog id="account-dialog" class="auth-dialog" aria-labelledby="account-title"><div class="auth-dialog-heading"><h2 id="account-title">Tu lugar en Huellas.</h2><button id="close-account" class="circle-button" type="button" aria-label="Cerrar mi cuenta" autofocus><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div><p id="account-name" class="auth-account-name"></p><p id="account-email" class="auth-account-email"></p><button id="open-users" class="auth-secondary" type="button" hidden>Usuarios de Huellas</button><button id="auth-logout" class="auth-secondary" type="button">Cerrar sesión</button><p id="account-message" class="auth-message" role="status" aria-live="polite"></p></dialog>
+  <dialog id="users-dialog" class="auth-dialog auth-users-dialog" aria-labelledby="users-title"><div class="auth-dialog-heading"><div><p class="auth-eyebrow">ADMINISTRACIÓN</p><h2 id="users-title">Usuarios de Huellas.</h2></div><button id="close-users" class="circle-button" type="button" aria-label="Cerrar usuarios" autofocus><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div><p class="auth-users-help">Cuentas registradas y última apertura de Huellas. Esta información es privada.</p><p id="users-message" class="auth-message" role="status" aria-live="polite"></p><div class="auth-users-table-wrap" tabindex="0" role="region" aria-label="Listado de usuarios"><table class="auth-users-table"><caption class="sr-only">Usuarios registrados en Huellas</caption><thead><tr><th scope="col">Nombre y correo</th><th scope="col">Registro</th><th scope="col">Último acceso</th></tr></thead><tbody id="users-rows"></tbody></table></div><div class="auth-users-pagination"><button id="users-previous" class="auth-secondary" type="button" disabled>Anterior</button><span id="users-page"></span><button id="users-next" class="auth-secondary" type="button" disabled>Siguiente</button></div></dialog>
+  </div>
   <noscript><p class="noscript">Activá JavaScript para recorrer esta colección interactiva.</p></noscript>
 </body>
 </html>
