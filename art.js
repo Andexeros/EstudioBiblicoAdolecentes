@@ -14,14 +14,14 @@ export class GeometryArt {
   constructor(canvas) {
     this.canvas=canvas;this.ctx=canvas.getContext('2d',{alpha:true});
     this.width=1;this.height=1;this.target=null;this.old=null;this.ready=false;
-    this.epoch=0;this.transitionStart=0;this.pointer={x:0,y:0};this.inView=true;this.frame=0;this.last=0;
+    this.epoch=0;this.transitionStart=null;this.pointer={x:0,y:0};this.inView=true;this.frame=null;this.last=0;
     this.particles=Array.from({length:26},(_,i)=>({x:Math.sin(i*9.12)*.43,y:Math.cos(i*4.7)*.45,size:2+i%3,speed:.3+(i%7)*.14,seed:i*2.8}));
     this.resizeObserver=new ResizeObserver(()=>{this.resize();this.start();});this.resizeObserver.observe(canvas);
-    if('IntersectionObserver' in window){this.visibilityObserver=new IntersectionObserver(([entry])=>{this.inView=entry.isIntersecting;if(this.inView)this.start();else cancelAnimationFrame(this.frame);},{threshold:0});this.visibilityObserver.observe(canvas);}
-    document.addEventListener('visibilitychange',()=>{if(document.hidden)cancelAnimationFrame(this.frame);else this.start();});
+    if('IntersectionObserver' in window){this.visibilityObserver=new IntersectionObserver(([entry])=>{this.inView=entry.isIntersecting;if(this.inView)this.start();else this.stop();},{threshold:0});this.visibilityObserver.observe(canvas);}
+    document.addEventListener('visibilitychange',()=>{if(document.hidden)this.stop();else this.start();});
     canvas.addEventListener('pointermove',e=>{if(e.pointerType==='touch')return;const r=canvas.getBoundingClientRect();this.pointer={x:(e.clientX-r.left)/r.width-.5,y:(e.clientY-r.top)/r.height-.5};this.start();});
     canvas.addEventListener('pointerleave',()=>{this.pointer={x:0,y:0};this.start();});
-    reducedMedia.addEventListener('change',()=>{cancelAnimationFrame(this.frame);this.frame=0;this.start();});
+    reducedMedia.addEventListener('change',()=>{this.stop();this.start();});
     this.resize();
   }
   resize(){
@@ -32,7 +32,7 @@ export class GeometryArt {
     const token=++this.epoch;this.color=lesson.color;this.ready=false;
     try{
       const [atlas,cell]=lesson.art;const img=await imageFor(atlas);if(token!==this.epoch)return;
-      const source=this.extract(img,atlas,cell);this.old=this.target;this.target=source;this.transitionStart=performance.now();this.ready=true;this.start();
+      const source=this.extract(img,atlas,cell);this.old=this.target;this.target=source;this.transitionStart=null;this.ready=true;this.start();
     }catch{
       if(token!==this.epoch)return;
       this.old=null;this.target=null;this.ready=true;this.ctx.clearRect(0,0,this.width,this.height);
@@ -62,12 +62,19 @@ export class GeometryArt {
     return {image:base,shards};
   }
   start(){
-    cancelAnimationFrame(this.frame);this.frame=0;
-    if(!this.inView||document.hidden||!this.ready||!this.target)return;
+    // Cursor and resize events share the pending frame instead of postponing it.
+    if(this.frame!==null||!this.inView||document.hidden||!this.ready||!this.target)return;
     this.frame=requestAnimationFrame(t=>this.draw(t));
   }
+  stop(){
+    if(this.frame!==null)cancelAnimationFrame(this.frame);
+    this.frame=null;
+  }
   draw(now){
+    this.frame=null;
     if(!this.target||!this.inView||document.hidden)return;
+    // Start the assembly clock only when its first frame can actually be drawn.
+    if(this.transitionStart===null)this.transitionStart=now;
     const reduced=reducedMedia.matches,elapsed=(now-this.transitionStart)/1000;
     const ctx=this.ctx,w=this.width,h=this.height;
     ctx.clearRect(0,0,w,h);
@@ -79,14 +86,14 @@ export class GeometryArt {
       ctx.globalAlpha=.12+(Math.sin(now/1700+p.seed)+1)*.08;ctx.beginPath();ctx.moveTo(x,y-p.size);ctx.lineTo(x+p.size,y+p.size);ctx.lineTo(x-p.size,y+p.size);ctx.closePath();ctx.fill();
     });ctx.globalAlpha=1;}
     ctx.save();ctx.translate(ox,oy);ctx.scale(scale,scale);
-    if(reduced || elapsed>1.15){ctx.drawImage(this.target.image,0,0);this.old=null;}
+    if(reduced || elapsed>1.45){ctx.drawImage(this.target.image,0,0);this.old=null;}
     else{
       if(this.old){ctx.globalAlpha=Math.max(0,1-elapsed*3);ctx.drawImage(this.old.image,0,0);ctx.globalAlpha=1;}
       this.target.shards.forEach(s=>{
-        const p=ease((elapsed-s.delay)/.8),scatter=1-p;ctx.save();ctx.translate(s.x+s.step/2+s.dx*scatter,s.y+s.step/2+s.dy*scatter);ctx.rotate(s.rotate*scatter);ctx.globalAlpha=p;ctx.drawImage(s.image,-s.step/2,-s.step/2);ctx.restore();
+        const p=ease((elapsed-s.delay)/1.2),scatter=1-p;ctx.save();ctx.translate(s.x+s.step/2+s.dx*scatter,s.y+s.step/2+s.dy*scatter);ctx.rotate(s.rotate*scatter);ctx.globalAlpha=p;ctx.drawImage(s.image,-s.step/2,-s.step/2);ctx.restore();
       });
     }
     ctx.restore();ctx.globalAlpha=1;
-    if(!reduced)this.frame=requestAnimationFrame(t=>this.draw(t));
+    if(!reduced)this.start();
   }
 }
