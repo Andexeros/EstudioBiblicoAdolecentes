@@ -1,16 +1,27 @@
-# Huellas · Proyecto para Vercel
+# Huellas · Estudios Bíblicos
 
-Esta versión conserva la web y las quince clases. Todos los archivos que necesitás subir están en una misma carpeta. La compilación utiliza `build.mjs` directamente y las imágenes y la tipografía se cargan desde la raíz.
+Versión 1.1.0 · Identidad e instalación · 19/10/2026. Mantiene las quince clases y sus 161 referencias, ilustraciones, animaciones y navegación original. Todos los archivos que necesitás subir están en una misma carpeta.
 
 ## Actualizar el repositorio que ya creaste
 
 1. Descargá el ZIP y usá **Extraer todo** en Windows.
-2. Abrí la carpeta extraída. Seleccioná sus dieciocho archivos.
+2. Abrí la carpeta extraída y seleccioná todos sus archivos descomprimidos.
 3. En la página principal de tu repositorio de GitHub, elegí **Add file → Upload files** y arrastrá esos archivos.
 4. Confirmá con **Commit changes**. Los archivos con el mismo nombre actualizan la versión anterior.
 5. Revisá el nuevo despliegue de Vercel, que debe utilizar ese último commit.
 
 Los archivos deben quedar en la raíz del repositorio, con sus nombres originales. Los duplicados con nombres como `app (1).js` no se utilizan para la web; podés eliminarlos después.
+
+## Identidad e instalación
+
+El encabezado, favicon e íconos utilizan una Biblia abierta vectorial, sin cruz. La marca Huellas y el nombre de instalación son independientes de la clase abierta y del año de la colección.
+
+En **Las 15 clases**, el botón **Instalar app** abre el cuadro nativo cuando el navegador lo ofrece. En los demás casos presenta instrucciones según el dispositivo. El catálogo se cierra mientras se muestran las instrucciones y vuelve al cerrar, con el foco y la posición conservados. El botón se oculta en modo de aplicación instalada o al recibir la confirmación de instalación.
+
+Probá la instalación en la dirección **HTTPS publicada en Vercel**. Abrir `index.html` desde el disco no permite comprobar el cuadro de instalación nativo. Esta entrega no incorpora un service worker ni funcionalidad offline.
+
+- `CAMBIOS_PWA.md`: detalle de los archivos modificados, nuevos y conservados.
+- `GUIA_PWA.md`: pruebas en Android, iPhone, escritorio y dispositivos con una instalación anterior.
 
 ## Configuración de Vercel
 
@@ -30,4 +41,4 @@ Se conservaron las historias, puntos clave, conclusiones y todas las referencias
 
 Las ilustraciones se generaron para el proyecto. La licencia de la tipografía URW Gothic Demi está en `FONT-LICENSE.txt`. El diseño contempla celulares, navegación por teclado y preferencias de movimiento reducido.
 
-La compilación y las pruebas funcionales de contenido y navegación pasaron. La revisión visual en un navegador no pudo completarse desde el entorno de creación.
+La compilación y las pruebas funcionales de contenido, navegación y estados de instalación pasaron. La instalación real y la revisión visual en navegador requieren las pruebas de `GUIA_PWA.md`.

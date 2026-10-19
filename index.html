@@ -4,16 +4,27 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#080e13">
-  <meta name="description" content="Quince estudios bíblicos para adolescentes. Historias, enseñanzas esenciales y referencias para recorrer la Palabra de Dios.">
-  <title>Huellas · Estudios bíblicos 2026</title>
-  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <meta name="description" content="Estudios bíblicos para adolescentes de San Rafael.">
+  <meta name="application-name" content="Huellas">
+  <meta name="apple-mobile-web-app-title" content="Huellas">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>Huellas · Estudios Bíblicos</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="favicon.svg?v=huellas-2" type="image/svg+xml" sizes="any">
+  <link rel="icon" href="huellas-favicon-32-v2.png" type="image/png" sizes="32x32">
+  <link rel="icon" href="huellas-favicon-16-v2.png" type="image/png" sizes="16x16">
+  <link rel="apple-touch-icon" href="huellas-apple-touch-180-v2.png" sizes="180x180">
   <link rel="stylesheet" href="styles.css">
-  <script type="module" src="app.js"></script>
+  <link rel="stylesheet" href="identity.css?v=20261019">
+  <script type="module" src="install.js?v=20261019"></script>
+  <script type="module" src="app.js?v=20261019"></script>
 </head>
 <body>
   <a class="skip-link" href="#lesson-content">Ir al contenido de la clase</a>
   <header class="site-header">
-    <a class="brand" href="#jonas" aria-label="Huellas, inicio"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M5 32 17 8l7 14-5 10Z" fill="currentColor"/><path d="m24 6 12 26H24l6-10Z" fill="currentColor" opacity=".5"/></svg><span>huellas<span class="brand-caption">ESTUDIOS BÍBLICOS</span></span></a>
+    <a class="brand" href="#jonas" aria-label="Huellas · Estudios Bíblicos para adolescentes, inicio"><svg class="bible-mark" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 12 14 9H5v20h9l6 3 6-3h9V9h-9Z" fill="currentColor" opacity=".1"/><g fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12 14 9H5v20h9l6 3 6-3h9V9h-9Z"/><path d="M20 12v20M9 15h4l3 1.5M9 20h4l3 1.5M31 15h-4l-3 1.5M31 20h-4l-3 1.5"/></g></svg><span>huellas<span class="brand-caption">ESTUDIOS BÍBLICOS<span class="brand-audience"> · ADOLESCENTES</span></span></span></a>
     <div class="header-right"><span class="collection-label">COLECCIÓN <b>2026</b></span><button id="open-catalog" class="catalog-button" aria-haspopup="dialog"><span>Las 15 clases</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button></div>
   </header>
   <main>
@@ -25,7 +36,16 @@
     <div id="lesson-content" class="lesson-content" tabindex="-1"></div>
   </main>
   <footer class="site-footer"><a class="footer-brand" href="#jonas">huellas.</a><p>Estudios bíblicos para adolescentes · 2026</p><span>Volvé a la Palabra.</span></footer>
-  <dialog id="catalog-dialog" class="catalog-dialog" aria-labelledby="catalog-title"><div class="catalog-header"><div><p class="eyebrow">COLECCIÓN 2026</p><h2 id="catalog-title">Cada clase,<br>una huella.</h2></div><button id="close-catalog" class="circle-button" aria-label="Cerrar lista de clases"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div><p class="catalog-intro">Elegí una historia. Encontrá su enseñanza. Volvé a sus pasajes.</p><div id="catalog-grid" class="catalog-grid"></div></dialog>
+  <dialog id="catalog-dialog" class="catalog-dialog" aria-labelledby="catalog-title"><div class="catalog-header"><div><p class="eyebrow">COLECCIÓN 2026</p><h2 id="catalog-title">Cada clase,<br>una huella.</h2></div><button id="close-catalog" class="circle-button" aria-label="Cerrar lista de clases"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div><p class="catalog-intro">Elegí una historia. Encontrá su enseñanza. Volvé a sus pasajes.</p><div class="catalog-install" id="catalog-install"><button id="install-app" class="install-button" type="button" aria-haspopup="dialog" aria-controls="install-dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M5 17v4h14v-4"/></svg><span>Instalar app</span></button><span class="install-caption">Huellas, en tu pantalla de inicio.</span></div><div id="catalog-grid" class="catalog-grid"></div></dialog>
+  <dialog id="install-dialog" class="install-dialog" aria-labelledby="install-title" aria-describedby="install-intro">
+    <header class="install-header"><div class="install-brand"><img src="huellas-icon-192-v2.png" width="56" height="56" alt=""><div><span class="install-eyebrow">LLEVÁ TUS CLASES CON VOS</span><span class="install-brand-name">huellas</span></div></div><button id="close-install" class="circle-button" type="button" aria-label="Cerrar instrucciones de instalación" autofocus><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></header>
+    <h2 id="install-title">Huellas, a un toque.</h2>
+    <p id="install-intro">Agregá Huellas a tu pantalla de inicio para abrir tus clases como una app.</p>
+    <ol id="install-steps" class="install-steps"></ol>
+    <p id="install-help" class="install-help"></p>
+    <button id="install-done" class="install-done" type="button">Entendido</button>
+  </dialog>
+  <div id="install-status" class="sr-only" role="status" aria-live="polite"></div>
   <div id="status" class="sr-only" role="status" aria-live="polite"></div>
   <noscript><p class="noscript">Activá JavaScript para recorrer esta colección interactiva.</p></noscript>
 </body>

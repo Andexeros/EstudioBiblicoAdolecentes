@@ -94,7 +94,7 @@ function render(animate = true) {
   const rgb = lesson.color.slice(1).match(/.{2}/g).map(n=>parseInt(n,16)).join(',');
   document.documentElement.style.setProperty('--accent',lesson.color);
   document.documentElement.style.setProperty('--accent-rgb',rgb);
-  document.title = `${lesson.name} · Huellas 2026`;
+  document.title = 'Huellas · Estudios Bíblicos';
   document.querySelector('meta[name="theme-color"]').content = '#080e13';
   $('lesson-number').textContent = `${String(currentIndex+1).padStart(2,'0')} / 15`;
   $('lesson-category').textContent = lesson.category;
@@ -149,7 +149,7 @@ window.addEventListener('hashchange',()=>{
   else if(!changed) window.scrollTo({top:0,behavior:preferredScroll()});
 });
 document.addEventListener('keydown',event=>{
-  if(dialog.open || event.altKey || event.ctrlKey || event.metaKey || event.target.closest('input,textarea,select,[contenteditable]') || window.scrollY>window.innerHeight*.5) return;
+  if(document.querySelector('dialog[open]') || event.altKey || event.ctrlKey || event.metaKey || event.target.closest('input,textarea,select,[contenteditable]') || window.scrollY>window.innerHeight*.5) return;
   if(event.key==='ArrowRight'){event.preventDefault();navigate(currentIndex+1);}
   if(event.key==='ArrowLeft'){event.preventDefault();navigate(currentIndex-1);}
 });

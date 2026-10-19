@@ -1,0 +1,38 @@
+/* Huellas identity and installation only. Original class styles stay in styles.css. */
+.brand>svg.bible-mark{color:#9cdbf4;flex-shrink:0}
+.brand-audience{font-size:12px;letter-spacing:1px;color:#83969d}
+.catalog-intro:has(+.catalog-install:not([hidden])){margin-bottom:17px}
+.catalog-install{display:flex;align-items:center;flex-wrap:wrap;gap:12px 18px;margin:0 0 28px}
+.catalog-install[hidden]{display:none}
+.install-button{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:44px;padding:10px 15px;border:1px solid #9cdbf438;border-radius:6px;background:#9cdbf407;color:#b8e5f7;font-size:14px;line-height:1.4;transition:background .2s,border-color .2s}
+.install-button:hover{background:#9cdbf410;border-color:#9cdbf480}
+.install-button svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.install-caption{font-size:12px;line-height:1.5;color:var(--muted)}
+.install-dialog{color:var(--text);background:#0d151b;border:1px solid #9cdbf42e;border-radius:14px;width:min(530px,calc(100% - 32px));max-height:90svh;padding:29px 30px 26px;overflow:auto;overscroll-behavior:contain}
+.install-dialog::backdrop{background:#02080ddd;backdrop-filter:blur(10px)}
+.install-header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:27px}
+.install-brand{display:flex;align-items:center;gap:13px;min-width:0}
+.install-brand img{width:56px;height:56px;flex-shrink:0;border:1px solid #9cdbf420;border-radius:13px}
+.install-brand>div{min-width:0}
+.install-eyebrow{display:block;color:#9aaeb7;font-family:monospace;font-size:12px;line-height:1.5;letter-spacing:1px}
+.install-brand-name{display:block;font-family:var(--display);font-size:28px;line-height:1.1;letter-spacing:-1px;margin-top:5px}
+.install-header .circle-button{width:44px;height:44px;flex-shrink:0}
+.install-header .circle-button:hover{border-color:#9cdbf4}
+.install-dialog h2{font-family:var(--display);font-size:31px;line-height:1.15;letter-spacing:-.9px;margin:0 0 12px;text-wrap:balance}
+#install-intro{color:var(--muted);font-size:16px;line-height:1.65;margin:0 0 23px}
+.install-steps{list-style:none;padding:0;margin:0;display:grid;gap:9px;counter-reset:install-step}
+.install-step{counter-increment:install-step;display:grid;grid-template-columns:36px minmax(0,1fr);gap:13px;padding:15px 16px;background:#ffffff03;border:1px solid #ffffff10;border-radius:7px}
+.install-step-icon{width:36px;height:36px;display:grid;place-items:center;color:#9cdbf4;background:#9cdbf408;border-radius:7px}
+.install-step-icon svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.install-step h3{font-size:16px;line-height:1.45;font-weight:500;margin:0 0 4px}
+.install-step h3::before{content:counter(install-step) '. ';color:#9cdbf4;font-family:monospace;font-size:14px}
+.install-step p{font-size:14px;line-height:1.65;color:#9eafb5;margin:0}
+.install-help{font-size:12px;line-height:1.7;color:#9eafb5;margin:17px 0 0}
+.install-help:empty{display:none}
+.install-done{display:block;width:100%;min-height:46px;margin-top:23px;padding:12px 20px;border:1px solid #9cdbf445;border-radius:6px;background:#9cdbf410;color:#b8e5f7;font-size:14px}
+.install-done:hover{background:#9cdbf41b;border-color:#9cdbf480}
+.install-dialog :focus-visible,.install-button:focus-visible{outline:2px solid #9cdbf4;outline-offset:4px}
+@media(max-width:1050px){.brand-audience{display:none}}
+@media(max-width:720px){.catalog-install{margin-bottom:22px;gap:10px 14px}.install-dialog{width:calc(100% - 24px);max-height:91svh;padding:24px 22px 22px}.install-header{margin-bottom:23px}.install-dialog h2{font-size:28px}}
+@media(max-width:370px){.install-dialog{padding:20px 17px}.install-eyebrow{font-size:12px;letter-spacing:.4px}.install-brand{gap:10px}.install-brand img{width:46px;height:46px}.install-brand-name{font-size:25px}.install-step{padding:13px 12px;gap:10px}.install-caption{flex-basis:100%}}
+@media print{.catalog-install,.install-dialog{display:none!important}}
