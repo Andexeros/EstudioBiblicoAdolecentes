@@ -5,13 +5,14 @@ import { resolve, extname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { nodeHandler } from './server/http.js';
 import { authProxy, authReturn } from './server/auth.js';
-import { sessionEndpoint, lessonsEndpoint, usersEndpoint } from './server/api.js';
+import { sessionEndpoint, lessonsEndpoint, usersEndpoint, preferencesEndpoint } from './server/api.js';
 
 const publicRoot = resolve(fileURLToPath(new URL('./dist/', import.meta.url)));
 const types = { '.html':'text/html; charset=utf-8', '.css':'text/css; charset=utf-8', '.js':'text/javascript; charset=utf-8', '.json':'application/json; charset=utf-8', '.webmanifest':'application/manifest+json; charset=utf-8', '.png':'image/png', '.jpg':'image/jpeg', '.webp':'image/webp', '.svg':'image/svg+xml', '.woff':'font/woff', '.woff2':'font/woff2', '.mp3':'audio/mpeg', '.m4a':'audio/mp4' };
 const handlers = new Map([
   ['/api/auth-return', nodeHandler(authReturn)], ['/api/session', nodeHandler(sessionEndpoint)],
   ['/api/lessons', nodeHandler(lessonsEndpoint)], ['/api/users', nodeHandler(usersEndpoint)],
+  ['/api/preferences', nodeHandler(preferencesEndpoint)],
 ]);
 const authHandler = nodeHandler(authProxy);
 

@@ -1,10 +1,10 @@
 import { GeometryArt } from './art.js';
 
-let mounted = false;
-export function mountHuellas(lessons) {
-if (mounted) return;
-if (!Array.isArray(lessons) || !lessons.length) throw new Error('No hay clases disponibles.');
-mounted = true;
+let mounted = null;
+export function mountHuellas(initialLessons, initialStudy = {}) {
+if (mounted) { mounted.update(initialLessons, initialStudy); return mounted; }
+if (!Array.isArray(initialLessons)) throw new Error('No pudimos cargar las clases.');
+let lessons = initialLessons;
 
 const $ = id => document.getElementById(id);
 const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -15,7 +15,7 @@ let currentIndex = initialRoute.index;
 let currentSection = initialRoute.section;
 let revealObserver;
 let sectionObserver;
-const art = new GeometryArt($('art-canvas'));
+let art;
 const dialog = $('catalog-dialog');
 
 function parseRoute() {
@@ -28,6 +28,7 @@ function parseRoute() {
 }
 
 function navigate(index, section = '') {
+  if (!lessons.length) return;
   const next = (index + lessons.length) % lessons.length;
   const hash = `#${lessons[next].id}${section ? '/' + section : ''}`;
   if (location.hash === hash) {
@@ -65,11 +66,12 @@ function contentHTML(lesson) {
 }
 
 function renderCatalog() {
+  if (!lessons.length) { $('catalog-grid').innerHTML = '<p class="hg-catalog-empty">Próximamente. Estamos preparando nuevos estudios bíblicos para tu grupo.</p>'; return; }
   $('catalog-grid').innerHTML = lessons.map((l, i) => {
     const [atlas, cell] = l.art;
     const x = (cell % 3) * 50;
     const y = Math.floor(cell / 3) * 100;
-    return `<button class="catalog-item" data-lesson="${i}" style="--tile-accent:${l.color}" aria-current="${i===currentIndex}"><span class="catalog-art" aria-hidden="true" style="background-image:url('atlas-${atlas}.webp');background-position:${x}% ${y}%"></span><span><span class="tile-number">${String(i+1).padStart(2,'0')} / 15</span><strong>${escape(l.name)}</strong><span class="tile-category">${escape(l.category)}</span></span></button>`;
+    return `<button class="catalog-item" data-lesson="${i}" style="--tile-accent:${l.color}" aria-current="${i===currentIndex}"><span class="catalog-art" aria-hidden="true" style="background-image:url('atlas-${atlas}.webp');background-position:${x}% ${y}%"></span><span><span class="tile-number">${String(i+1).padStart(2,'0')} / ${lessons.length}</span><strong>${escape(l.name)}</strong><span class="tile-category">${escape(l.category)}</span></span></button>`;
   }).join('');
   $('catalog-grid').querySelectorAll('[data-lesson]').forEach(button=>button.addEventListener('click',()=>{dialog.close();navigate(Number(button.dataset.lesson));}));
 }
@@ -101,7 +103,7 @@ function render(animate = true) {
   document.documentElement.style.setProperty('--accent-rgb',rgb);
   document.title = 'Huellas · Estudios Bíblicos';
   document.querySelector('meta[name="theme-color"]').content = '#080e13';
-  $('lesson-number').textContent = `${String(currentIndex+1).padStart(2,'0')} / 15`;
+  $('lesson-number').textContent = `${String(currentIndex+1).padStart(2,'0')} / ${lessons.length}`;
   $('lesson-category').textContent = lesson.category;
   $('lesson-name').textContent = lesson.name;
   $('hero-title').innerHTML = `${escape(lesson.headline[0])}<br><span class="accent-text">${escape(lesson.headline[1])}</span>`;
@@ -119,10 +121,11 @@ function render(animate = true) {
     $('stage-copy').animate([{opacity:0,transform:'translateY(14px)'},{opacity:1,transform:'translateY(0)'}],{duration:550,easing:'cubic-bezier(.2,.7,.2,1)'});
     $('art-word').animate([{opacity:0},{opacity:1}],{duration:950});
   }
+  art ||= new GeometryArt($('art-canvas'));
   art.setLesson(lesson);
   renderCatalog();
   observeReading();
-  $('status').textContent = `Clase ${currentIndex+1} de 15: ${lesson.name}.`;
+  $('status').textContent = `Clase ${currentIndex+1} de ${lessons.length}: ${lesson.name}.`;
 }
 
 $('previous-lesson').addEventListener('click',()=>navigate(currentIndex-1));
@@ -146,6 +149,7 @@ dialog.addEventListener('click',event=>{
 });
 
 window.addEventListener('hashchange',()=>{
+  if (!lessons.length) return;
   const route=parseRoute();
   const changed=route.index!==currentIndex;
   currentIndex=route.index;currentSection=route.section;
@@ -154,6 +158,7 @@ window.addEventListener('hashchange',()=>{
   else if(!changed) window.scrollTo({top:0,behavior:preferredScroll()});
 });
 document.addEventListener('keydown',event=>{
+  if (!lessons.length || $('huellas-app').hidden || $('huellas-app').inert) return;
   if(document.querySelector('dialog[open]') || event.altKey || event.ctrlKey || event.metaKey || event.target.closest('input,textarea,select,[contenteditable]') || window.scrollY>window.innerHeight*.5) return;
   if(event.key==='ArrowRight'){event.preventDefault();navigate(currentIndex+1);}
   if(event.key==='ArrowLeft'){event.preventDefault();navigate(currentIndex-1);}
@@ -167,6 +172,36 @@ $('art-stage').addEventListener('touchend',e=>{
   touchStart=null;
 },{passive:true});
 
-render(false);
-if(initialRoute.section)requestAnimationFrame(()=>$(initialRoute.section)?.scrollIntoView({behavior:'instant'}));
+function update(nextLessons, study = {}) {
+  if (!Array.isArray(nextLessons)) throw new Error('No pudimos cargar las clases.');
+  lessons = nextLessons; touchStart = null;
+  const empty = !lessons.length, name = study.groupName || 'Estudios Bíblicos';
+  const label = study.collection?.label || 'Colección 2026';
+  document.querySelector('.stage').hidden = empty;
+  $('lesson-content').hidden = empty;
+  document.querySelector('.skip-link').hidden = empty;
+  $('group-empty').hidden = !empty;
+  $('empty-group-name').textContent = name;
+  $('study-group-label').textContent = name;
+  $('header-collection').textContent = study.collection?.year || '2026';
+  $('catalog-collection').textContent = `${name} · ${label}`;
+  $('open-catalog').querySelector('span').textContent = lessons.length ? `${lessons.length === 1 ? 'La clase' : 'Las ' + lessons.length + ' clases'}` : 'Mis estudios';
+  document.querySelector('.site-footer p').textContent = `${name} · ${label}`;
+  for (const link of document.querySelectorAll('.brand,.footer-brand')) link.setAttribute('href', lessons.length ? '#' + lessons[0].id : '#');
+  for (const id of ['previous-lesson', 'next-lesson']) $(id).disabled = lessons.length < 2;
+  const route = parseRoute(); currentIndex = route.index; currentSection = route.section;
+  const canonical = empty ? '' : '#' + lessons[currentIndex].id + (currentSection ? '/' + currentSection : '');
+  if (location.hash !== canonical) history.replaceState(null, '', location.pathname + location.search + canonical);
+  revealObserver?.disconnect(); sectionObserver?.disconnect();
+  if (empty) {
+    art?.stop(); $('lesson-content').replaceChildren(); $('lesson-dots').replaceChildren();
+    renderCatalog(); $('status').textContent = `${name}. Próximamente habrá nuevos estudios.`;
+  } else {
+    render(false);
+    if (currentSection) requestAnimationFrame(() => $(currentSection)?.scrollIntoView({ behavior: 'instant' }));
+  }
+}
+mounted = { update };
+update(initialLessons, initialStudy);
+return mounted;
 }

@@ -1,3 +1,6 @@
+import { createGroupExperience } from './groups-ui.js?v=20261020-groups1';
+import { groupLabel } from './groups.js?v=20261020-groups1';
+
 const $ = id => document.getElementById(id);
 const screen = $('auth-screen');
 const application = $('huellas-app');
@@ -6,7 +9,7 @@ const fields = $('auth-fields');
 const tabs = [...$('auth-tabs').querySelectorAll('[role="tab"]')];
 let mode = 'login', busy = false, available = false, googleEnabled = false;
 let currentUser = null, mounted = false, checkingSession = false, resendUntil = 0, resendTimer;
-let usersOffset = 0, usersHasMore = false;
+let usersOffset = 0, usersHasMore = false, usersTicket = 0;
 const entry = new URL(location.href);
 let resetToken = entry.searchParams.get('auth') === 'reset' ? entry.searchParams.get('token') : '';
 const resetExpired = entry.searchParams.get('auth') === 'reset' && !resetToken;
@@ -107,6 +110,8 @@ function errorText(error) {
   return error.message;
 }
 
+const groupExperience = createGroupExperience({ request, message, errorText });
+
 async function openApplication(session) {
   if (!session.user?.emailVerified) {
     if (session.user?.email) $('auth-email').value = session.user.email;
@@ -118,20 +123,12 @@ async function openApplication(session) {
   message('Abriendo tus clases…');
   // One access write per page opening; no polling or background activity tracking.
   await request('/api/session', {});
-  const data = await request('/api/lessons');
-  if (!Array.isArray(data.lessons) || !data.lessons.length) throw new Error('No pudimos cargar las clases. Volvé a intentar.');
   $('account-name').textContent = session.user.name || 'Tu cuenta';
   $('account-email').textContent = session.user.email;
   $('open-users').hidden = !session.isAdmin;
-  screen.hidden = true;
-  application.hidden = false;
-  application.inert = false;
   try {
-    if (!mounted) {
-      const app = await import('./app.js?v=20261019-login1');
-      app.mountHuellas(data.lessons);
-      mounted = true;
-    }
+    await groupExperience.open(session);
+    mounted = true;
   } catch (error) {
     application.hidden = true;
     application.inert = true;
@@ -266,10 +263,12 @@ $('auth-logout').addEventListener('click', async () => {
 const dateFormat = new Intl.DateTimeFormat('es-AR', { dateStyle: 'short', timeStyle: 'short', timeZone: 'America/Argentina/Buenos_Aires' });
 function dateText(value) { return value && !Number.isNaN(Date.parse(value)) ? dateFormat.format(new Date(value)) : 'Sin acceso registrado'; }
 async function loadUsers(offset) {
+  const ticket = ++usersTicket;
   $('users-previous').disabled = true; $('users-next').disabled = true;
   message('Cargando usuarios…', false, 'users-message');
   try {
-    const data = await request('/api/users?offset=' + offset);
+    const data = await request('/api/users?offset=' + offset + '&group=' + encodeURIComponent($('users-group-filter').value));
+    if (ticket !== usersTicket) return;
     usersOffset = offset; usersHasMore = data.hasMore;
     const fragment = document.createDocumentFragment();
     data.users.forEach(user => {
@@ -279,6 +278,7 @@ async function loadUsers(offset) {
       const email = document.createElement('span'); email.textContent = user.email;
       if (user.emailVerified !== true) { const pending = document.createElement('span'); pending.textContent = 'Correo pendiente de verificación'; person.append(pending); }
       person.prepend(name, email); row.append(person);
+      const group = document.createElement('td'); group.textContent = groupLabel(user.study_group); row.append(group);
       for (const value of [user.createdAt, user.last_seen_at]) { const cell = document.createElement('td'); cell.textContent = dateText(value); row.append(cell); }
       fragment.append(row);
     });
@@ -286,9 +286,11 @@ async function loadUsers(offset) {
     message(`${data.total} ${data.total === 1 ? 'cuenta registrada' : 'cuentas registradas'}.`, false, 'users-message');
     $('users-page').textContent = data.total ? `${offset + 1}–${offset + data.users.length}` : 'Sin usuarios';
   } catch (error) {
+    if (ticket !== usersTicket) return;
     $('users-rows').replaceChildren(); message(errorText(error), true, 'users-message');
-  } finally { $('users-previous').disabled = usersOffset === 0; $('users-next').disabled = !usersHasMore; }
+  } finally { if (ticket === usersTicket) { $('users-previous').disabled = usersOffset === 0; $('users-next').disabled = !usersHasMore; } }
 }
+$('users-group-filter').addEventListener('change', () => loadUsers(0));
 $('open-users').addEventListener('click', () => { $('account-dialog').close(); $('users-dialog').showModal(); loadUsers(0); });
 $('users-previous').addEventListener('click', () => loadUsers(Math.max(0, usersOffset - 50)));
 $('users-next').addEventListener('click', () => loadUsers(usersOffset + 50));

@@ -1,0 +1,44 @@
+/* Group selection only; the existing lesson artwork, animation and music styles remain independent. */
+.hg-welcome{max-width:1000px;min-height:100svh;margin:auto;padding:55px 6% 45px}
+.hg-welcome>.auth-brand{margin-bottom:65px}
+.hg-welcome-copy{max-width:650px;margin-bottom:34px}
+.hg-welcome-copy h1{font-size:clamp(38px,6vw,62px);letter-spacing:-2px;max-width:none;margin-bottom:18px;line-height:1.12}
+.hg-welcome-copy>p:last-child{font-size:17px;line-height:1.8;color:var(--muted)}
+.hg-fieldset{border:0;margin:0;padding:0;min-width:0}
+.hg-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin:0 0 25px}
+.hg-choice{position:relative;display:flex;align-items:flex-start;gap:12px;padding:24px 19px;min-width:0;border:1px solid #9cdbf426;background:#101b22a8;border-radius:10px;cursor:pointer;transition:background .2s,border-color .2s}
+.hg-choice:has(input:checked){border-color:#96e3d0;background:#85d8ca0b}
+.hg-choice:has(input:focus-visible){outline:2px solid #9cdbf4;outline-offset:4px}
+.hg-choice input{position:absolute;right:15px;top:18px;accent-color:#9cdbf4;width:17px;height:17px}
+.hg-choice-number{flex-shrink:0;font:11px/1.5 monospace;color:#8fd6ca;padding-top:4px}
+.hg-choice>span:last-child{padding-right:10px}
+.hg-choice strong{display:block;font:600 21px/1.35 var(--display);margin:0 0 12px;letter-spacing:-.4px}
+.hg-choice>span>span{display:block;font-size:13px;line-height:1.75;color:#91a8b3}
+.hg-welcome .auth-submit{max-width:340px}
+.hg-welcome-note{color:#7f98a5;font-size:12px;line-height:1.8;margin:24px 0 8px}
+.hg-profile,.hg-preview-tools{padding:22px 0;border-top:1px solid #9cdbf420}
+.hg-profile h3,.hg-preview-tools h3{font:600 20px/1.4 var(--display);margin:0 0 8px}
+.hg-profile>p,.hg-preview-tools>p{font-size:13px;line-height:1.7;color:var(--muted);margin-bottom:17px}
+.hg-choices-compact{grid-template-columns:1fr;gap:8px;margin-bottom:16px}
+.hg-choices-compact .hg-choice{padding:14px 16px;gap:10px}
+.hg-choices-compact .hg-choice strong{font-size:16px;margin:0 0 3px}
+.hg-choices-compact .hg-choice>span>span{font-size:11px;padding-right:12px}
+.hg-select-field{display:grid;gap:8px;font-size:12px;color:#9fb8c4;max-width:330px;margin:0 0 18px}
+.hg-select-field select{min-width:0;min-height:43px;padding:9px 12px;border:1px solid #9cdbf438;border-radius:5px;background:#101c24;color:#e2eff4;font:14px var(--body)}
+.hg-empty{min-height:calc(100svh - 230px);max-width:750px;margin:auto;padding:50px 6% 80px;text-align:center}
+.hg-empty>img{opacity:.65;margin:0 auto 30px}
+.hg-empty h1{font-size:clamp(40px,7vw,66px);letter-spacing:-2px;max-width:none;margin:0 0 20px}
+.hg-empty>p:not(.auth-eyebrow){color:var(--muted);font-size:17px;line-height:1.8;max-width:390px;margin:0 auto 30px}
+.hg-empty>.auth-secondary{max-width:240px;margin:auto}
+.hg-catalog-empty{grid-column:1/-1;color:var(--muted);line-height:1.8;padding:25px 0 10px}
+.hg-notice,.hg-preview-banner{max-width:1450px;margin:0 auto;padding:12px 5.2%;font-size:12px;line-height:1.8;color:#9ad7cc}
+.hg-notice:empty{display:none}
+#study-group-label{display:block;margin-bottom:4px;color:#a9c8d7;font-size:10px}
+.lesson-dots{max-width:260px;flex-wrap:wrap}
+.hg-preview-banner{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:#9cdbf406;border-block:1px solid #9cdbf418}
+.hg-preview-banner strong{font-weight:400}.hg-preview-banner .auth-link{margin-left:auto}
+.hg-welcome button:disabled,.hg-profile button:disabled,.hg-preview-tools button:disabled{opacity:.45;cursor:default}
+.hg-welcome :focus-visible,.hg-select-field select:focus-visible{outline:2px solid #9cdbf4;outline-offset:4px}
+@media(max-width:850px){.hg-choices{grid-template-columns:1fr}.hg-choice{padding:19px 21px}.hg-choice strong{font-size:20px;margin-bottom:7px}.hg-welcome{max-width:650px}.hg-welcome>.auth-brand{margin-bottom:44px}}
+@media(max-width:720px){.hg-welcome{padding:30px 6%}.hg-welcome-copy h1{font-size:39px;letter-spacing:-1.3px}.hg-welcome-copy>p:last-child{font-size:15px}.hg-welcome .auth-submit{max-width:none}.hg-empty{padding-top:40px}.hg-preview-banner{gap:6px 12px}.hg-preview-banner .auth-link{margin-left:0}}
+@media(prefers-reduced-motion:reduce){.hg-choice{transition:none}}

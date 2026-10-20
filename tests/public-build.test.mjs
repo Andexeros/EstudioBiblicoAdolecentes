@@ -9,8 +9,8 @@ await import('../build.mjs');
 
 test('the static build contains no class dataset, server source, database script or secrets', async () => {
   const files = await readdir(new URL('dist/', root));
-  for (const name of ['lessons.js', 'server', 'api', 'neon-login.sql', '.env.local', '.env.example', 'package-lock.json', 'node_modules', 'CONFIGURAR_LOGIN.md']) assert(!files.includes(name), name);
-  for (const name of ['index.html', 'app.js', 'auth.js', 'auth.css', 'art.js', 'install.js', 'manifest.webmanifest']) assert(files.includes(name));
+  for (const name of ['lessons.js', 'server', 'api', 'migrations', 'neon-login.sql', '.env.local', '.env.example', 'package-lock.json', 'node_modules', 'CONFIGURAR_LOGIN.md']) assert(!files.includes(name), name);
+  for (const name of ['index.html', 'app.js', 'auth.js', 'auth.css', 'groups.js', 'groups-ui.js', 'groups.css', 'art.js', 'install.js', 'manifest.webmanifest']) assert(files.includes(name));
   const html = await readFile(new URL('dist/index.html', root), 'utf8');
   const app = await readFile(new URL('dist/app.js', root), 'utf8');
   assert(!html.includes(lessons[0].description));

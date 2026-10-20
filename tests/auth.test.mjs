@@ -59,7 +59,8 @@ test('anonymous visitors cannot retrieve classes or the user directory', async t
 });
 
 test('a verified session returns all original classes without session tokens', async t => {
-  upstream(t, () => Response.json(envelope()));
+  process.env.DATABASE_URL = 'postgresql://owner:fake-password@ep-test.us-east-2.aws.neon.tech/neondb?sslmode=require';
+  upstream(t, item => item.url.startsWith(baseUrl) ? Response.json(envelope()) : fakeSQL([{ study_group: 'adolescentes' }]));
   const response = await lessonsEndpoint(req('/api/lessons', { cookies: cookie }), config);
   assert.deepEqual((await response.json()).lessons, lessons);
   assert.match(response.headers.get('cache-control'), /private, no-store/);
@@ -218,7 +219,7 @@ test('access tracking and admin pagination parameterize SQL rather than interpol
   assert.match(calls[0].body.query, /ON CONFLICT/);
   const page = await registeredUsers(50);
   assert.equal(page.users.length, 50); assert.equal(page.hasMore, true); assert.equal(page.total, 101);
-  assert.equal(calls[1].body.params[0], '50');
+  assert.equal(calls[1].body.params.at(-1), '50');
   assert.match(calls[1].body.query, /neon_auth\."user"/);
 });
 

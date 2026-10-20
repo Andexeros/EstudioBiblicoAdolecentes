@@ -3,7 +3,7 @@
   "version": "1.2.0",
   "private": true,
   "type": "module",
-  "description": "Estudios bíblicos para adolescentes de San Rafael.",
+  "description": "Estudios bíblicos para los grupos de la iglesia en San Rafael.",
   "scripts": {
     "dev": "node --env-file-if-exists=.env.local serve.mjs",
     "build": "node build.mjs",

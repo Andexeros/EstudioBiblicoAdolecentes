@@ -154,7 +154,7 @@ installButton.addEventListener('click', async () => {
     const choice = request.userChoice ? await request.userChoice : result;
     if (!isInstalled()) announcement.textContent = choice?.outcome === 'accepted'
       ? 'Completá la instalación de Huellas desde el navegador.'
-      : 'Podés instalar Huellas más adelante desde Las 15 clases.';
+      : 'Podés instalar Huellas más adelante desde el catálogo de clases.';
     prompting = false;
     updateInstallState();
     restoreCatalog();
