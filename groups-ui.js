@@ -30,7 +30,7 @@ export function createGroupExperience({ request, message, errorText }) {
   }
   async function applyStudy(data, ticket) {
     if (!data || !Array.isArray(data.lessons) || !data.collection || !Array.isArray(data.collections)) throw new Error('No pudimos cargar tus estudios. Volvé a intentar.');
-    appModule ||= await import('./app.js?v=20261020-groups1');
+    appModule ||= await import('./app.js?v=20261020-clases1');
     if (ticket !== loadTicket) return;
     study = data;
     $('auth-screen').hidden = true; $('group-welcome').hidden = true;

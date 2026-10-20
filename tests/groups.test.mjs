@@ -56,7 +56,7 @@ test('saving and retrieving a group survives a different device session cookie',
   assert.equal(result.groupId, 'adolescentes');
   await preferencesEndpoint(request('/api/preferences', { groupId: 'grande' }), config);
   result = await (await preferencesEndpoint(request(), config)).json();
-  assert.equal(result.groupId, 'grande'); assert.deepEqual(result.study.lessons, []);
+  assert.equal(result.groupId, 'grande'); assert.deepEqual(result.study.lessons, studyForGroup('grande').lessons);
 });
 test('preference reads and writes use only the verified session user and remain isolated', async t => {
   const { saved, queries, state } = backend(t);
@@ -97,7 +97,7 @@ test('preference queries are parameterized and never mutate Neon Auth', async t 
 test('the classes API uses the stored group and ignores a requested user or ordinary group override', async t => {
   const { saved } = backend(t); saved.set(person.id, 'intermedio');
   const data = await (await lessonsEndpoint(request('/api/lessons?group=adolescentes&userId=someone'), config)).json();
-  assert.equal(data.groupId, 'intermedio'); assert.deepEqual(data.lessons, []);
+  assert.equal(data.groupId, 'intermedio'); assert.deepEqual(data.lessons, studyForGroup('intermedio').lessons);
 });
 test('group selection never grants administrative access or previews', async t => {
   backend(t);
@@ -127,12 +127,12 @@ test('Adolescentes preserves the 15 exact lesson objects, order and 161 referenc
   const study = studyForGroup('adolescentes'); assert.deepEqual(study.lessons, lessons);
   for (let index = 0; index < lessons.length; index++) assert.equal(study.lessons[index], lessons[index]);
   assert.equal(study.lessons.reduce((total, lesson) => total + lesson.references.length, 0), 161);
-  assert.equal(studyAssignments.length, 15);
+  assert.equal(studyAssignments.filter(item => item.groupIds.includes('adolescentes')).length, 15);
 });
-test('both empty groups have valid collection metadata and their official names', () => {
+test('Intermedio and Grande share twelve classes with valid collection metadata and their official names', () => {
   for (const id of ['intermedio', 'grande']) {
     const study = studyForGroup(id); assert.equal(study.groupName, groupLabel(id));
-    assert.deepEqual(study.lessons, []); assert.equal(study.collection.id, '2026'); assert.equal(study.collections.length, 1);
+    assert.equal(study.lessons.length, 12); assert.equal(study.collection.id, '2026'); assert.equal(study.collections.length, 1);
   }
   assert.equal(groupLabel('grande'), 'Grupo Grande');
 });

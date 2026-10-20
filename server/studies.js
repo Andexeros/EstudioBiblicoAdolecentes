@@ -1,8 +1,10 @@
 import { lessons } from '../lessons.js';
+import { lessonsIntermedioGrande2026 } from './lessons-2026.js';
 import { groupById } from '../groups.js';
 import { HttpError } from './http.js';
 
-// Add collections and assignments here. Each study's full content exists only once in lessons.js.
+// Full content exists once; assignments can share it across groups and collections.
+export const studyLessons = [...lessons, ...lessonsIntermedioGrande2026];
 export const studyCollections = [{ id: '2026', label: 'Colección 2026', year: 2026 }];
 export const studyAssignments = [
   ...[
@@ -10,10 +12,11 @@ export const studyAssignments = [
   'nuevo-nacimiento', 'tentacion', 'ruido', 'ayuno-y-oracion', 'alabanza',
   'congregarnos', 'verdad', 'defender-la-fe', 'apocalipsis',
   ].map((lessonId, index) => ({ lessonId, groupIds: ['adolescentes'], collectionId: '2026', order: index + 1, published: true })),
+  ...lessonsIntermedioGrande2026.map((lesson, index) => ({ lessonId: lesson.id, groupIds: ['intermedio', 'grande'], collectionId: '2026', order: index + 1, published: true })),
   // Add future assignment objects here; groupIds may contain several groups.
 ];
 
-export function studyForGroup(groupId, collectionId = '', source = lessons, assignments = studyAssignments, collections = studyCollections) {
+export function studyForGroup(groupId, collectionId = '', source = studyLessons, assignments = studyAssignments, collections = studyCollections) {
   const group = groupById(groupId);
   if (!group) throw new HttpError(400, 'INVALID_GROUP', 'Elegí uno de los grupos disponibles.');
   const available = collections.filter(collection => assignments.some(item => item.published === true && item.collectionId === collection.id && item.groupIds.includes(groupId)))
