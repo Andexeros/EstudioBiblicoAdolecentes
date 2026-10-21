@@ -2542,7 +2542,7 @@ export const lessonsIntermedioGrande2026 = [
   },
   {
     "id": "baal-vive",
-    "name": "Baal vive",
+    "name": "Derrotando a Baal",
     "category": "Prioridades e idolatría",
     "headline": [
       "¿Quién ocupa",

@@ -43,7 +43,7 @@ Los dos grupos reciben la misma colección 2026 y el mismo orden. Los temas con 
 | 05 | La sala de espera de Dios | 7 | Reloj de arena existente · `a`, celda 3 |
 | 06 | Los cuatro evangelios | 5 | Cuatro pergaminos nuevos · `d`, celda 3 |
 | 07 | Más allá de la apariencia | 10 | Máscara de cristal nueva · `d`, celda 4 |
-| 08 | Baal vive | 3 | Altar y llama nuevos · `d`, celda 5 |
+| 08 | Derrotando a Baal | 3 | Altar y llama nuevos · `d`, celda 5 |
 | 09 | La oración perseverante | 24 | Manos en oración nuevas · `e`, celda 0 |
 | 10 | Ángeles y el hombre | 62 | Alas simbólicas nuevas · `e`, celda 1 |
 | 11 | Personajes de la historia de la Iglesia | 0 | Pergamino y pluma nuevos · `e`, celda 2 |
