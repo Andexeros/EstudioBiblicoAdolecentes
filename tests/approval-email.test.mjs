@@ -120,7 +120,7 @@ test('two simultaneous notifications produce only one send',async t=>{
   assert.equal(sends,1);assert.equal(queries.filter(item=>item.query.includes('approval-email-finish')).length,1);
   assert(results.some(result=>result.status==='sent'));assert(results.some(result=>result.status==='sending'||result.status==='unchanged'));
 });
-for(const status of ['unchanged','sending','cooldown','not_applicable'])test(`a ${status} claim never sends a message`,async t=>{
+for(const status of ['unchanged','already_sent','sending','cooldown','not_applicable'])test(`a ${status} claim never sends a message`,async t=>{
   backend(t,{notification:{status}});let sends=0;
   assert.deepEqual(await notifyApproval(person.id,'target-user',4,{send:async()=>{sends++;}}),{status});assert.equal(sends,0);
 });
@@ -162,31 +162,55 @@ test('rejection, reactivation, blocking, groups and role changes do not send app
   }
   assert.equal(calls.length,0);assert(!queries.some(item=>item.query.includes('approval-email-claim')));
 });
-test('manual resends use the authenticated actor, current version, existing permissions and rate limits',async t=>{
+for(const action of ['send_approval_email','resend_approval_email'])test(`${action} uses the authenticated actor, current version, existing permissions and rate limits`,async t=>{
   const {queries,state}=backend(t);const {calls}=smtp(t);
-  assert.equal((await adminEndpoint(request(command('resend_approval_email')),config)).status,200);assert.equal(calls.length,1);
+  assert.equal((await adminEndpoint(request(command(action)),config)).status,200);assert.equal(calls.length,1);
   assert.deepEqual(queries.find(item=>item.query.includes('approval-email-claim')).params,[person.id,'target-user','3','true']);
   assert.equal(queries.filter(item=>item.query.includes('huellas:limit')).length,3);assert(!queries.some(item=>item.query.includes('huellas:action')));
-  state.allowed=false;await assert.rejects(adminEndpoint(request(command('resend_approval_email')),config),error=>error.code==='TOO_MANY_REQUESTS');assert.equal(calls.length,1);
+  state.allowed=false;await assert.rejects(adminEndpoint(request(command(action)),config),error=>error.code==='TOO_MANY_REQUESTS');assert.equal(calls.length,1);
 });
-test('ordinary, blocked, pending and unverified users cannot resend; browser payloads cannot choose the sender or recipient',async t=>{
+test('welcoming an already-approved user does not mutate approval, groups, roles or the administrative audit',async t=>{
+  const {queries,state}=backend(t);const {calls}=smtp(t);const before={...state.member};
+  const result=await(await adminEndpoint(request(command('send_approval_email')),config)).json();
+  assert.deepEqual(result,{ok:true,notification:{status:'sent'}});assert.equal(calls.length,1);
+  assert.equal(state.committed,false);assert.deepEqual(state.member,before);
+  assert(!queries.some(({query})=>query.includes('huellas:action')||/UPDATE|INSERT|DELETE/.test(query)));
+});
+test('a repeated welcome request for a recorded success does not open SMTP or alter approval',async t=>{
+  const {queries,state}=backend(t,{notification:{status:'already_sent'}});const {calls}=smtp(t);
+  for(const action of ['send_approval_email','resend_approval_email']){
+    const result=await(await adminEndpoint(request(command(action)),config)).json();
+    assert.deepEqual(result,{ok:true,notification:{status:'already_sent'}});
+  }
+  assert.equal(calls.length,0);assert.equal(state.committed,false);
+  assert(!queries.some(({query})=>query.includes('approval-email-finish')||query.includes('huellas:action')));
+});
+test('a failed manual welcome records the failure while leaving the approved account unchanged',async t=>{
+  const {queries,state}=backend(t);const before={...state.member};
+  const {calls}=smtp(t,()=>{throw Object.assign(new Error('private SMTP detail'),{code:'EAUTH'});});
+  const result=await(await adminEndpoint(request(command('send_approval_email')),config)).json();
+  assert.deepEqual(result,{ok:true,notification:{status:'failed',code:'SMTP_AUTH_FAILED'}});
+  assert.equal(calls.length,1);assert.deepEqual(state.member,before);assert.equal(state.committed,false);
+  assert.equal(queries.find(({query})=>query.includes('approval-email-finish')).params[2],'failed');
+});
+for(const action of ['send_approval_email','resend_approval_email'])test(`ordinary, blocked, pending and unverified users cannot use ${action}; browser payloads cannot choose the sender or recipient`,async t=>{
   const {state,queries}=backend(t);const {calls}=smtp(t);
   for(const patch of [{status:'approved',role:'user'},{status:'blocked',role:'owner'},{status:'pending',role:'admin'}]){
-    Object.assign(state.member,patch);await assert.rejects(adminEndpoint(request(command('resend_approval_email')),config),error=>error instanceof HttpError&&error.status===403);
+    Object.assign(state.member,patch);await assert.rejects(adminEndpoint(request(command(action)),config),error=>error instanceof HttpError&&error.status===403);
   }
   Object.assign(state.member,{status:'approved',role:'admin'});state.user.emailVerified=false;
-  await assert.rejects(adminEndpoint(request(command('resend_approval_email')),config),error=>error.code==='EMAIL_NOT_VERIFIED');
+  await assert.rejects(adminEndpoint(request(command(action)),config),error=>error.code==='EMAIL_NOT_VERIFIED');
   state.user.emailVerified=true;
   for(const patch of [{email:'other@example.com'},{actorId:'owner'},{role:'owner'},{smtpPassword:'forged'}]){
-    await assert.rejects(adminEndpoint(request(command('resend_approval_email',patch)),config),error=>error.code==='INVALID_ACTION');
+    await assert.rejects(adminEndpoint(request(command(action,patch)),config),error=>error.code==='INVALID_ACTION');
   }
   assert.equal(calls.length,0);assert(!queries.some(item=>item.query.includes('approval-email-claim')));
 });
-test('SQL permission revocation, protected targets and unverified recipients are enforced before a resend',async t=>{
+for(const action of ['send_approval_email','resend_approval_email'])test(`SQL permission revocation, protected targets and unverified recipients are enforced before ${action}`,async t=>{
   const {state}=backend(t);const {calls}=smtp(t);
   for(const code of ['FORBIDDEN','OWNER_PROTECTED','EMAIL_NOT_VERIFIED','PROFILE_REQUIRED','STALE_USER','INVALID_TRANSITION']){
     state.claimError='HUELLAS_'+code;
-    await assert.rejects(adminEndpoint(request(command('resend_approval_email')),config),error=>error.code===code);
+    await assert.rejects(adminEndpoint(request(command(action)),config),error=>error.code===code);
   }
   assert.equal(calls.length,0);
 });

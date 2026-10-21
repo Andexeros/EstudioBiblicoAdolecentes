@@ -2,14 +2,14 @@ import { studyGroups, groupLabel } from './groups.js?v=20261020-groups1';
 
 const statuses={pending:'Pendiente',approved:'Aprobado',rejected:'Rechazado',blocked:'Bloqueado'};
 const roles={owner:'Propietario',admin:'Administrador',user:'Usuario'};
-const actions={approve:'Aprobar cuenta',reject:'Rechazar solicitud',block:'Bloquear cuenta',reactivate:'Reactivar cuenta',set_group:'Cambiar grupo',grant_admin:'Designar administrador',revoke_admin:'Revocar administrador',delete:'Eliminar cuenta permanentemente',resend_approval_email:'Reenviar correo'};
-const explanations={approve:'La persona podrá acceder a las clases de su grupo y recibirá un correo de bienvenida. Si el envío falla, la aprobación se conserva.',reject:'La solicitud quedará rechazada y la cuenta no podrá acceder a las clases.',block:'Se revocará el acceso al contenido. La información de la cuenta se conservará para una posible reactivación.',reactivate:'La cuenta volverá a tener acceso a los estudios de su grupo.',set_group:'El grupo se actualizará en Neon y en los próximos accesos de esta persona.',grant_admin:'Esta persona podrá gestionar solicitudes y usuarios ordinarios. No podrá designar administradores ni eliminar cuentas.',revoke_admin:'Se retirarán sus permisos administrativos. Podrá continuar como usuario aprobado.',delete:'Esta acción es irreversible. Se eliminará la identidad en Neon Auth y sus preferencias y accesos de Huellas. El historial administrativo se conserva.',resend_approval_email:'Se enviará nuevamente la bienvenida al correo verificado de esta cuenta. Si el envío anterior quedó sin confirmar, consultá primero si llegó para evitar un duplicado. Esta acción no modifica sus permisos.'};
+const actions={approve:'Aprobar cuenta',reject:'Rechazar solicitud',block:'Bloquear cuenta',reactivate:'Reactivar cuenta',set_group:'Cambiar grupo',grant_admin:'Designar administrador',revoke_admin:'Revocar administrador',delete:'Eliminar cuenta permanentemente',send_approval_email:'Enviar correo de bienvenida',resend_approval_email:'Reenviar correo'};
+const explanations={approve:'La persona podrá acceder a las clases de su grupo y recibirá un correo de bienvenida. Si el envío falla, la aprobación se conserva.',reject:'La solicitud quedará rechazada y la cuenta no podrá acceder a las clases.',block:'Se revocará el acceso al contenido. La información de la cuenta se conservará para una posible reactivación.',reactivate:'La cuenta volverá a tener acceso a los estudios de su grupo.',set_group:'El grupo se actualizará en Neon y en los próximos accesos de esta persona.',grant_admin:'Esta persona podrá gestionar solicitudes y usuarios ordinarios. No podrá designar administradores ni eliminar cuentas.',revoke_admin:'Se retirarán sus permisos administrativos. Podrá continuar como usuario aprobado.',delete:'Esta acción es irreversible. Se eliminará la identidad en Neon Auth y sus preferencias y accesos de Huellas. El historial administrativo se conserva.',send_approval_email:'Se enviará la bienvenida al correo verificado de esta cuenta y se registrará el resultado. Su aprobación, grupo y permisos se conservan.',resend_approval_email:'Se enviará nuevamente la bienvenida al correo verificado de esta cuenta. Si el envío anterior quedó sin confirmar, consultá primero si llegó para evitar un duplicado. Esta acción no modifica sus permisos.'};
 const auditLabels={...actions,delete_requested:'Eliminación solicitada',delete_failed:'Eliminación pendiente de confirmar'};
 const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const dates=new Intl.DateTimeFormat('es-AR',{dateStyle:'short',timeStyle:'short',timeZone:'America/Argentina/Buenos_Aires'});
 const date=value=>value&&!Number.isNaN(Date.parse(value))?dates.format(new Date(value)):'Sin acceso registrado';
 function emailStatus(user){
-  if(!user.approvalEmailStatus)return '';
+  if(!user.approvalEmailStatus)return user.status==='approved'?'<small class="ha-email-status">Bienvenida sin enviar</small>':'';
   const state=user.approvalEmailStatus;
   const stale=state==='sending'&&Date.now()-Date.parse(user.approvalEmailAttemptedAt)>120000;
   const label=state==='sent'?'Bienvenida enviada · '+date(user.approvalEmailSentAt)
@@ -21,7 +21,8 @@ function emailStatus(user){
 function emailResult(result,action){
   const notification=result.notification;
   if(!notification)return ['Cambio guardado.',false];
-  if(notification.status==='sent')return [action==='approve'?'Cuenta aprobada y correo de bienvenida enviado.':'Correo de bienvenida reenviado.',false];
+  if(notification.status==='sent')return [action==='approve'?'Cuenta aprobada y correo de bienvenida enviado.':action==='send_approval_email'?'Correo de bienvenida enviado.':'Correo de bienvenida reenviado.',false];
+  if(notification.status==='already_sent')return ['La bienvenida ya fue enviada. No se envió otro correo.',false];
   if(notification.status==='sending')return ['Ya hay un envío en curso. Actualizá el listado en unos instantes.',false];
   if(notification.status==='cooldown')return ['Esperá 5 minutos desde el último intento antes de reenviar el correo.',true];
   if(notification.status==='not_applicable')return ['Esta cuenta no tiene una notificación de aprobación para reenviar.',true];
@@ -49,9 +50,10 @@ export function createAdminPanel({request,errorText,onPermissionChange}) {
       list.push(['set_group',false]);
       if(role==='owner'&&user.role==='user'&&user.status==='approved')list.push(['grant_admin',!user.emailVerified||user.needsNameConfirmation]);
       if(role==='owner'&&user.role==='admin')list.push(['revoke_admin',false]);
-      if(user.status==='approved'&&user.approvalEmailStatus){
+      if(user.status==='approved'&&user.approvalEmailStatus!=='sent'&&!user.approvalEmailSentAt){
         const cooldown=Date.now()-Date.parse(user.approvalEmailAttemptedAt)<300000&&user.approvalEmailError!=='SMTP_NOT_CONFIGURED';
-        list.push(['resend_approval_email',!user.emailVerified||user.needsNameConfirmation||cooldown]);
+        const action=!user.approvalEmailStatus||user.approvalEmailStatus==='queued'?'send_approval_email':'resend_approval_email';
+        list.push([action,!user.emailVerified||user.needsNameConfirmation||cooldown]);
       }
     }
     if(role==='owner')list.push(['delete',!deletionEnabled]);

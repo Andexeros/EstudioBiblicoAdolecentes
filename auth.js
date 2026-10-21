@@ -1,5 +1,5 @@
 import { createGroupExperience } from './groups-ui.js?v=20261021-approval1';
-import { createAdminPanel } from './admin.js?v=20261021-approval-email1';
+import { createAdminPanel } from './admin.js?v=20261021-welcome-existing1';
 import { normalizeFullName, validFullName, fullNameMessage } from './name-rules.js';
 import { groupLabel } from './groups.js?v=20261020-groups1';
 

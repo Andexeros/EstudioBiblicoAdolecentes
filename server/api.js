@@ -96,7 +96,7 @@ export async function adminEndpoint(request, config) {
   }
   const input = await bodyJSON(request);
   if (Object.keys(input).some(key => !['action','userId','version','groupId','confirmation','confirmed'].includes(key))
-    || !['approve','reject','block','reactivate','set_group','grant_admin','revoke_admin','delete','resend_approval_email'].includes(input.action)
+    || !['approve','reject','block','reactivate','set_group','grant_admin','revoke_admin','delete','send_approval_email','resend_approval_email'].includes(input.action)
     || typeof input.userId !== 'string' || !input.userId || input.userId.length > 200
     || !Number.isInteger(input.version) || input.version < 0 || input.version > 2147483647) throw new HttpError(400,'INVALID_ACTION','Revisá la acción y la cuenta seleccionada.');
   if (input.confirmed !== true) throw new HttpError(400,'CONFIRMATION_REQUIRED','Confirmá la acción antes de continuar.');
@@ -106,7 +106,7 @@ export async function adminEndpoint(request, config) {
   if (input.action !== 'delete' && input.confirmation !== undefined) throw new HttpError(400,'INVALID_ACTION','Revisá los datos de la acción.');
   if (input.action === 'delete' && (typeof input.confirmation !== 'string' || input.confirmation.length > 254)) throw new HttpError(400,'CONFIRMATION_REQUIRED','Escribí el correo de la cuenta.');
   await consumeLimit('admin:'+user.id,60,60,config);
-  if (input.action === 'resend_approval_email') {
+  if (['send_approval_email','resend_approval_email'].includes(input.action)) {
     await consumeLimit('approval-email:actor:'+user.id,10,300,config);
     await consumeLimit('approval-email:target:'+input.userId,3,900,config);
     const notification = await notifyApproval(user.id,input.userId,input.version,{manual:true});
