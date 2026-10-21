@@ -23,7 +23,7 @@
   <link rel="stylesheet" href="admin.css?v=20261021-approval1">
   <link rel="stylesheet" href="music.css?v=20261019-music1">
   <script type="module" src="install.js?v=20261019"></script>
-  <script type="module" src="auth.js?v=20261021-approval1"></script>
+  <script type="module" src="auth.js?v=20261021-google1"></script>
   <script type="module" src="music.js?v=20261019-music2"></script>
 </head>
 <body>
@@ -59,7 +59,7 @@
       <button id="auth-retry" class="auth-secondary" type="button" hidden>Volver a intentar</button>
       <div id="auth-verify-actions" class="auth-verify-actions" hidden><button id="auth-resend" class="auth-link" type="button">Reenviar código</button><button id="auth-other-account" class="auth-link" type="button">Usar otra cuenta</button></div>
       <button id="auth-back" class="auth-link auth-back" type="button" hidden>Volver a ingresar</button>
-      <div id="auth-google" class="auth-google" hidden><span>o continuá con</span><button id="auth-google-button" class="auth-secondary" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.2c0-.7-.1-1.4-.2-2.1H12v4h5.1c-.2 1.2-.9 2.2-1.9 2.9v2.5h3.2c1.9-1.8 2.6-4.2 2.6-7.3Z" fill="#4285f4"/><path d="M12 21c2.7 0 4.9-.9 6.5-2.4l-3.2-2.5c-.9.6-2 .9-3.3.9-2.6 0-4.8-1.7-5.6-4H3.1v2.6A9.8 9.8 0 0 0 12 21Z" fill="#34a853"/><path d="M6.4 13c-.2-.6-.3-1.2-.3-1.8s.1-1.2.3-1.8V6.8H3.1A9.8 9.8 0 0 0 2 11.2c0 1.6.4 3.1 1.1 4.4L6.4 13Z" fill="#fbbc05"/><path d="M12 5.4c1.5 0 2.7.5 3.7 1.4l2.8-2.7A9.6 9.6 0 0 0 12 1.4a9.8 9.8 0 0 0-8.9 5.4l3.3 2.6c.8-2.3 3-4 5.6-4Z" fill="#ea4335"/></svg>Google</button></div>
+      <div id="auth-google" class="auth-google" hidden><span>o continuá con</span><button id="auth-google-button" class="auth-secondary" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.2c0-.7-.1-1.4-.2-2.1H12v4h5.1c-.2 1.2-.9 2.2-1.9 2.9v2.5h3.2c1.9-1.8 2.6-4.2 2.6-7.3Z" fill="#4285f4"/><path d="M12 21c2.7 0 4.9-.9 6.5-2.4l-3.2-2.5c-.9.6-2 .9-3.3.9-2.6 0-4.8-1.7-5.6-4H3.1v2.6A9.8 9.8 0 0 0 12 21Z" fill="#34a853"/><path d="M6.4 13c-.2-.6-.3-1.2-.3-1.8s.1-1.2.3-1.8V6.8H3.1A9.8 9.8 0 0 0 2 11.2c0 1.6.4 3.1 1.1 4.4L6.4 13Z" fill="#fbbc05"/><path d="M12 5.4c1.5 0 2.7.5 3.7 1.4l2.8-2.7A9.6 9.6 0 0 0 12 1.4a9.8 9.8 0 0 0-8.9 5.4l3.3 2.6c.8-2.3 3-4 5.6-4Z" fill="#ea4335"/></svg>Continuar con Google</button></div>
       <p id="auth-register-note" class="auth-register-note" hidden>El equipo de Huellas podrá consultar tu nombre, correo, grupo y último acceso. Tu cuenta es personal y necesita aprobación para acceder a los estudios.</p>
     </section>
   </main>
@@ -68,6 +68,13 @@
     <div class="hg-welcome-copy"><p class="auth-eyebrow">TU LUGAR EN HUELLAS</p><h1 id="group-welcome-heading" tabindex="-1">Bienvenido a Huellas</h1><p>Cada enseñanza deja una huella. Elegí tu grupo para comenzar.</p></div>
     <form id="group-welcome-form"><fieldset id="group-welcome-fields" class="hg-fieldset"><legend class="sr-only">Mi grupo de estudio</legend><div id="group-welcome-choices" class="hg-choices"></div></fieldset><button id="group-continue" class="auth-submit" type="submit" disabled>Continuar a mis estudios</button><p id="group-welcome-message" class="auth-message" role="status" aria-live="polite"></p></form>
     <p class="hg-welcome-note">Podés cambiar tu grupo desde tu perfil cuando quieras.</p><button id="group-welcome-logout" class="auth-link" type="button">Cerrar sesión</button>
+  </main>
+  <main id="profile-welcome" class="ha-access" aria-labelledby="profile-heading" hidden>
+    <a class="auth-brand" href="/" aria-label="Huellas, inicio"><img src="huellas-biblia.svg" width="48" height="48" alt=""><span>huellas<span>ESTUDIOS BÍBLICOS</span></span></a>
+    <section class="ha-access-panel"><p class="auth-eyebrow">UN PASO MÁS PARA CONOCERNOS</p><h1 id="profile-heading" tabindex="-1">¿Cómo te llamás?</h1><p>Recuperamos el nombre de tu cuenta de Google. Confirmá o completá tu nombre y apellido reales para que el equipo de Huellas pueda reconocer tu solicitud.</p><p id="profile-email" class="auth-account-email"></p>
+      <form id="profile-form" aria-busy="false"><fieldset id="profile-fields" class="hg-fieldset"><div class="auth-field"><label for="profile-name">Nombre y apellido</label><input id="profile-name" name="name" type="text" autocomplete="name" minlength="3" maxlength="100" required placeholder="Ingresá tu nombre completo" aria-describedby="profile-name-help"></div><p id="profile-name-help" class="auth-register-note">Usá tu nombre completo. Podés incluir tildes, apóstrofes y guiones. El ingreso con Google también requiere aprobación administrativa para las cuentas nuevas.</p><button id="profile-continue" class="auth-submit" type="submit">Confirmar y continuar</button></fieldset></form>
+      <p id="profile-message" class="auth-message" role="status" aria-live="polite"></p><button id="profile-logout" class="auth-link" type="button">Cerrar sesión</button>
+    </section>
   </main>
   <main id="approval-screen" class="ha-access" aria-labelledby="approval-title" hidden>
     <a class="auth-brand" href="/" aria-label="Huellas, inicio"><img src="huellas-biblia.svg" width="48" height="48" alt=""><span>huellas<span>ESTUDIOS BÍBLICOS</span></span></a>

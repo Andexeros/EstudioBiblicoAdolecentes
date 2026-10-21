@@ -1,9 +1,13 @@
 import { database } from './access.js';
 import { HttpError } from './http.js';
 
-export const adminAccess = member => member?.status === 'approved' && !member.deletion_id && ['owner','admin'].includes(member.role);
+export const needsNameConfirmation = member => member?.google_account === true && !member.name_confirmed_at;
+export const adminAccess = member => member?.status === 'approved' && !member.deletion_id && !needsNameConfirmation(member) && ['owner','admin'].includes(member.role);
 export function publicAccess(member) {
-  return { status: member.status, role: member.role, groupId: member.study_group || null, version: Number(member.version) };
+  return { status: member.status, role: member.role, groupId: member.study_group || null, version: Number(member.version), needsNameConfirmation: needsNameConfirmation(member) };
+}
+export function requireConfirmedName(member) {
+  if (needsNameConfirmation(member)) throw new HttpError(409,'PROFILE_REQUIRED','Confirmá tu nombre y apellido para continuar.');
 }
 export function requireApproved(member) {
   if (!member) throw new HttpError(401, 'ACCOUNT_UNAVAILABLE', 'No pudimos encontrar tu cuenta. Volvé a ingresar.');
@@ -11,6 +15,7 @@ export function requireApproved(member) {
     const code = {pending:'ACCOUNT_PENDING',rejected:'ACCOUNT_REJECTED',blocked:'ACCOUNT_BLOCKED'}[member.status] || 'ACCOUNT_BLOCKED';
     throw new HttpError(403, code, 'Tu cuenta todavía no tiene acceso a los estudios. Consultá su estado en Huellas.');
   }
+  requireConfirmedName(member);
   return member;
 }
 export function requireAdministrator(member, ownerOnly = false) {
@@ -20,7 +25,8 @@ export function requireAdministrator(member, ownerOnly = false) {
 }
 export async function membership(userId, create = true) {
   const sql = database();
-  const rows = await sql`/* huellas:membership */ SELECT m.*, p.study_group
+  const rows = await sql`/* huellas:membership */ SELECT m.*, p.study_group,
+    EXISTS (SELECT 1 FROM neon_auth."account" a WHERE a."userId"::text = m.user_id AND a."providerId" = 'google') AS google_account
     FROM public.huellas_memberships m
     JOIN neon_auth."user" u ON u.id::text = m.user_id
     LEFT JOIN public.huellas_user_preferences p ON p.user_id = m.user_id
@@ -46,6 +52,8 @@ export function databaseError(error) {
     DELETE_INCOMPLETE:[503,'La identidad todavía figura en Neon. La cuenta sigue bloqueada; revisá el estado antes de reintentar.'],
     CONFIRMATION_REQUIRED:[400,'Escribí el correo de la cuenta para confirmar su eliminación.'],
     INVALID_GROUP:[400,'Elegí uno de los grupos disponibles.'], INVALID_ACTION:[400,'Acción no válida.'],
+    PROFILE_REQUIRED:[409,'La cuenta debe confirmar su nombre y apellido antes de ser aprobada.'],
+    PROFILE_CONFIRMED:[409,'El nombre ya fue confirmado. Actualizá la página para continuar.'],
     ACCESS_DENIED:[403,'Tu cuenta no puede realizar esta operación. Consultá su estado.'],
   };
   if (known[code]) return new HttpError(known[code][0], code === 'ACCESS_DENIED' ? 'ACCOUNT_BLOCKED' : code, known[code][1]);

@@ -31,7 +31,7 @@ test('the local server also denies direct source and class-file access', async (
   }
   const page = await invoke('/');
   assert.equal(page.status, 200); assert.match(page.headers['Content-Type'], /text\/html/);
-  for (const path of ['/lessons.js', '/server/lessons-2026.js', '/server/auth.js', '/server/admin-data.js', '/server/memberships.js', '/migrations/20261021-approval-admin.sql', '/.env.local', '/neon-login.sql', '/package.json']) assert.equal((await invoke(path)).status, 404, path);
+  for (const path of ['/lessons.js', '/server/lessons-2026.js', '/server/auth.js', '/server/profile.js', '/server/admin-data.js', '/server/memberships.js', '/migrations/20261021-approval-admin.sql', '/migrations/20261021-google-profile.sql', '/.env.local', '/neon-login.sql', '/package.json']) assert.equal((await invoke(path)).status, 404, path);
   assert.equal((await invoke('/%2e%2e%2fpackage.json')).status, 403);
 });
 

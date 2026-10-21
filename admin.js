@@ -20,18 +20,18 @@ export function createAdminPanel({request,errorText,onPermissionChange}) {
     if(role!=='owner'&&user.role!=='user')return '<span>Gestiona el propietario</span>';
     const list=[];
     if(!user.deletionPending){
-      if(user.status==='pending')list.push(['approve',!user.emailVerified],['reject',false]);
+      if(user.status==='pending')list.push(['approve',!user.emailVerified||user.needsNameConfirmation],['reject',false]);
       if(['blocked','rejected'].includes(user.status))list.push(['reactivate',!user.emailVerified]);
       if(user.status!=='blocked')list.push(['block',false]);
       list.push(['set_group',false]);
-      if(role==='owner'&&user.role==='user'&&user.status==='approved')list.push(['grant_admin',!user.emailVerified]);
+      if(role==='owner'&&user.role==='user'&&user.status==='approved')list.push(['grant_admin',!user.emailVerified||user.needsNameConfirmation]);
       if(role==='owner'&&user.role==='admin')list.push(['revoke_admin',false]);
     }
     if(role==='owner')list.push(['delete',!deletionEnabled]);
-    return `<div class="ha-row-actions">${list.map(([action,disabled])=>`<button type="button" data-action="${action}" data-user="${escape(user.id)}" ${disabled||busy?'disabled':''} ${disabled?`title="${action==='delete'?'Falta configurar la API administrativa de Neon':'Primero debe verificar su correo'}"`:''}>${action==='delete'?(user.deletionPending?'Reintentar eliminación':'Eliminar'):escape(actions[action])}</button>`).join('')}</div>`;
+    return `<div class="ha-row-actions">${list.map(([action,disabled])=>`<button type="button" data-action="${action}" data-user="${escape(user.id)}" ${disabled||busy?'disabled':''} ${disabled?`title="${action==='delete'?'Falta configurar la API administrativa de Neon':(user.needsNameConfirmation?'Primero debe confirmar su nombre':'Primero debe verificar su correo')}"`:''}>${action==='delete'?(user.deletionPending?'Reintentar eliminación':'Eliminar'):escape(actions[action])}</button>`).join('')}</div>`;
   }
   function renderUsers(){
-    $('users-rows').innerHTML=users.length?users.map(user=>`<tr><td data-label="Cuenta"><strong>${escape(user.name||'Sin nombre')}</strong><span>${escape(user.email)}</span></td><td data-label="Grupo"><span>${escape(groupLabel(user.study_group))}</span></td><td data-label="Estado"><div><span class="ha-status" data-state="${escape(user.status)}">${escape(statuses[user.status]||'Pendiente')}</span><span>${user.emailVerified?'Correo verificado':'Correo sin verificar'}</span>${user.deletionPending?'<span>Eliminación pendiente</span>':''}</div></td><td data-label="Rol"><span>${escape(roles[user.role]||'Usuario')}</span></td><td data-label="Fechas"><div><p>Registro<br>${escape(date(user.createdAt))}</p><p>Último acceso<br>${escape(date(user.last_seen_at))}</p></div></td><td data-label="Acciones">${controlsFor(user)}</td></tr>`).join(''):'<tr><td colspan="6" class="ha-empty-row">No hay cuentas para estos filtros.</td></tr>';
+    $('users-rows').innerHTML=users.length?users.map(user=>`<tr><td data-label="Cuenta"><strong>${escape(user.name||'Sin nombre')}</strong><span>${escape(user.email)}</span></td><td data-label="Grupo"><span>${escape(groupLabel(user.study_group))}</span></td><td data-label="Estado"><div><span class="ha-status" data-state="${escape(user.status)}">${escape(statuses[user.status]||'Pendiente')}</span><span>${user.emailVerified?'Correo verificado':'Correo sin verificar'}</span>${user.needsNameConfirmation?'<span>Nombre por confirmar</span>':''}${user.deletionPending?'<span>Eliminación pendiente</span>':''}</div></td><td data-label="Rol"><span>${escape(roles[user.role]||'Usuario')}</span></td><td data-label="Fechas"><div><p>Registro<br>${escape(date(user.createdAt))}</p><p>Último acceso<br>${escape(date(user.last_seen_at))}</p></div></td><td data-label="Acciones">${controlsFor(user)}</td></tr>`).join(''):'<tr><td colspan="6" class="ha-empty-row">No hay cuentas para estos filtros.</td></tr>';
   }
   async function loadUsers(nextOffset=0){
     if(!permitted)return;
@@ -82,7 +82,7 @@ export function createAdminPanel({request,errorText,onPermissionChange}) {
   }
   function begin(user,action,button){
     if(busy||!permitted)return;selection={user,action,button};note('',false,'admin-confirm-message');
-    $('admin-confirm-title').textContent=actions[action];$('admin-confirm-description').textContent=explanations[action];
+    $('admin-confirm-title').textContent=actions[action];$('admin-confirm-description').textContent=action==='reactivate'&&user.needsNameConfirmation?'La cuenta volverá a estar pendiente para que confirme su nombre de Google y un administrador pueda revisar su solicitud.':explanations[action];
     $('admin-confirm-person').textContent=`${user.name||'Sin nombre'} · ${user.email}`;
     $('admin-group-field').hidden=action!=='set_group';$('admin-target-group').required=action==='set_group';$('admin-target-group').value=user.study_group||'';
     $('admin-delete-field').hidden=action!=='delete';$('admin-delete-confirmation').required=action==='delete';$('admin-delete-confirmation').value='';

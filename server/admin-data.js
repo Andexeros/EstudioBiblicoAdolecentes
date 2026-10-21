@@ -21,10 +21,12 @@ export async function overview() {
 export async function audit(before = null) {
   const sql = database();
   const rows = await sql`/* huellas:audit */ SELECT a.id::text, a.actor_id, a.target_id, a.action, a.created_at, a.details,
-    actor.name AS actor_name, target.name AS target_name
+    coalesce(actor_profile.full_name,actor.name) AS actor_name, coalesce(target_profile.full_name,target.name) AS target_name
     FROM public.huellas_admin_audit a
     LEFT JOIN neon_auth."user" actor ON actor.id::text = a.actor_id
     LEFT JOIN neon_auth."user" target ON target.id::text = a.target_id
+    LEFT JOIN public.huellas_memberships actor_profile ON actor_profile.user_id = a.actor_id
+    LEFT JOIN public.huellas_memberships target_profile ON target_profile.user_id = a.target_id
     WHERE (${before}::bigint IS NULL OR a.id < ${before}::bigint)
     ORDER BY a.id DESC LIMIT 51`;
   return { entries: rows.slice(0,50), next: rows.length > 50 ? String(rows[49].id) : null };

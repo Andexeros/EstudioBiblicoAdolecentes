@@ -1,5 +1,5 @@
 import { createGroupExperience } from './groups-ui.js?v=20261021-approval1';
-import { createAdminPanel } from './admin.js?v=20261021-approval1';
+import { createAdminPanel } from './admin.js?v=20261021-google1';
 import { normalizeFullName, validFullName, fullNameMessage } from './name-rules.js';
 import { groupLabel } from './groups.js?v=20261020-groups1';
 
@@ -12,10 +12,17 @@ const tabs = [...$('auth-tabs').querySelectorAll('[role="tab"]')];
 let mode = 'login', busy = false, available = false, googleEnabled = false;
 let currentUser = null, mounted = false, checkingSession = false, resendUntil = 0, resendTimer;
 let currentAccess = null, monitorTimer;
+let profileBusy = false;
 const entry = new URL(location.href);
 let resetToken = entry.searchParams.get('auth') === 'reset' ? entry.searchParams.get('token') : '';
 const resetExpired = entry.searchParams.get('auth') === 'reset' && !resetToken;
 const loginError = entry.searchParams.get('auth') === 'error';
+const googleError = (entry.searchParams.get('error') || '').toLowerCase();
+const loginErrorText = /account_not_linked|email_mismatch|account_already_linked/.test(googleError)
+  ? 'Ese correo ya tiene una cuenta. Ingresá con tu correo y contraseña o recuperala. Huellas no crea otra cuenta ni fuerza una vinculación.'
+  : /access_denied|user_cancelled|cancelled/.test(googleError)
+  ? 'El ingreso con Google se canceló. Podés volver a intentar o ingresar con tu correo.'
+  : 'El ingreso no se completó. Podés volver a intentar con Google o con tu correo y contraseña.';
 
 const descriptions = {
   login: ['Volvé a la Palabra.', 'Ingresá a tu cuenta para explorar las clases.', 'Ingresar'],
@@ -93,7 +100,7 @@ async function request(path, body) {
     if (!response.ok) {
       const error = new Error(data.message || 'No pudimos completar la solicitud. Intentá nuevamente.');
       error.code = data.code; error.status = response.status;
-      if (/^ACCOUNT_(PENDING|BLOCKED|REJECTED|UNAVAILABLE)$/.test(error.code || '')) queueMicrotask(() => checkCurrentSession(true));
+      if (/^ACCOUNT_(PENDING|BLOCKED|REJECTED|UNAVAILABLE)$/.test(error.code || '') || error.code === 'PROFILE_REQUIRED') queueMicrotask(() => checkCurrentSession(true));
       throw error;
     }
     return data;
@@ -126,7 +133,7 @@ function lockPrivateContent() {
 function showApproval(access) {
   currentAccess = access || {status:'pending',role:'user',groupId:null};
   lockPrivateContent();
-  screen.hidden = true; $('group-welcome').hidden = true;
+  screen.hidden = true; $('group-welcome').hidden = true; $('profile-welcome').hidden = true;
   const wasHidden = $('approval-screen').hidden;
   $('approval-screen').hidden = false;
   const state = currentAccess.status;
@@ -144,6 +151,36 @@ function armMonitor() {
   clearTimeout(monitorTimer);
   if (!document.hidden && currentUser?.emailVerified) monitorTimer = setTimeout(async () => { await checkCurrentSession(); armMonitor(); },30000);
 }
+function showProfile() {
+  lockPrivateContent(); screen.hidden = true; $('group-welcome').hidden = true; $('approval-screen').hidden = true;
+  const wasHidden = $('profile-welcome').hidden;
+  $('profile-welcome').hidden = false;
+  if (wasHidden) {
+    $('profile-name').value = currentUser.name || '';
+    $('profile-email').textContent = currentUser.email;
+    message('',false,'profile-message');
+    $('profile-heading').focus({preventScroll:true});
+  }
+}
+$('profile-form').addEventListener('submit',async event=>{
+  event.preventDefault();
+  if (profileBusy || !event.currentTarget.reportValidity()) return;
+  const name=normalizeFullName($('profile-name').value);
+  if (!validFullName(name)) { message(fullNameMessage,true,'profile-message'); $('profile-name').focus(); return; }
+  profileBusy=true; $('profile-fields').disabled=true; $('profile-form').setAttribute('aria-busy','true');
+  $('profile-continue').textContent='Guardando…'; message('',false,'profile-message');
+  try {
+    await request('/api/profile',{name});
+    await openApplication(await request('/api/session'),false);
+  } catch(error) { message(errorText(error),true,'profile-message'); }
+  finally { profileBusy=false; $('profile-fields').disabled=false; $('profile-form').setAttribute('aria-busy','false'); $('profile-continue').textContent='Confirmar y continuar'; }
+});
+$('profile-logout').addEventListener('click',async()=>{
+  if (profileBusy) return;
+  $('profile-logout').disabled=true;
+  try { await request('/api/auth/sign-out',{}); location.replace(location.pathname+location.hash); }
+  catch(error) { message(errorText(error),true,'profile-message'); $('profile-logout').disabled=false; }
+});
 async function openApplication(session, record = true) {
   if (!session.user?.emailVerified) {
     if (session.user?.email) $('auth-email').value = session.user.email;
@@ -156,6 +193,11 @@ async function openApplication(session, record = true) {
   if (['blocked','rejected'].includes(session.access?.status)) {
     showApproval(session.access); mounted = true; armMonitor(); return true;
   }
+  if (session.access?.needsNameConfirmation) {
+    if (record) await request('/api/session',{});
+    showProfile(); mounted=true; armMonitor(); return true;
+  }
+  $('profile-welcome').hidden=true;
   message('Comprobando el acceso a Huellas…');
   if (record) await request('/api/session', {});
   try { await groupExperience.open(session); mounted = true; }
@@ -172,11 +214,11 @@ async function checkCurrentSession(manual = false) {
     }
     const previous = currentAccess;
     adminPanel.setSession(session);
-    if (!previous || previous.status !== session.access?.status || previous.groupId !== session.access?.groupId) {
+    if (!previous || previous.status !== session.access?.status || previous.groupId !== session.access?.groupId || previous.needsNameConfirmation !== session.access?.needsNameConfirmation) {
       await openApplication(session,false);
     } else {
       currentAccess = session.access;
-      if (session.access?.status === 'approved') await groupExperience.setAdmin(session.isAdmin);
+      if (session.access?.status === 'approved' && !session.access?.needsNameConfirmation) await groupExperience.setAdmin(session.isAdmin);
       else if (manual) message('Tu solicitud todavía conserva el mismo estado.',false,'approval-message');
     }
   } catch (error) {
@@ -199,7 +241,7 @@ async function bootstrap() {
     if (resetToken) { setMode('reset'); return; }
     if (resetExpired) { setMode('forgot', 'El enlace venció o no es válido. Solicitá uno nuevo.'); return; }
     if (session.user) { if (await openApplication(session)) return; }
-    else setMode('login', loginError ? 'El ingreso no se completó. Podés volver a intentar.' : '');
+    else setMode('login', loginError ? loginErrorText : '');
   } catch (error) {
     if (currentUser?.email) { $('auth-email').value = currentUser.email; setMode('login'); }
     message(errorText(error), true); $('auth-retry').hidden = false;

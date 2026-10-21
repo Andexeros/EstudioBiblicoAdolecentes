@@ -3,10 +3,12 @@ import { getSession, requireUser, publicUser, withCookies } from './auth.js';
 import { recordAccess, registeredUsers } from './access.js';
 import { saveUserGroup, validateGroup } from './preferences.js';
 import { studyForGroup } from './studies.js';
-import { membership, publicAccess, requireApproved, requireAdministrator, adminAccess } from './memberships.js';
+import { membership, publicAccess, requireApproved, requireConfirmedName, requireAdministrator, adminAccess } from './memberships.js';
 import { consumeLimit } from './limits.js';
 import { overview, audit, mutate, finishDelete, identityExists } from './admin-data.js';
 import { deletionConfigured, deletionService } from './neon-admin.js';
+import { fullNameMessage, normalizeFullName, validFullName } from '../name-rules.js';
+import { confirmName } from './profile.js';
 
 async function context(request, config) {
   const session = await getSession(request, config, true);
@@ -25,7 +27,7 @@ export async function sessionEndpoint(request, config) {
     if (!['pending','approved'].includes(member.status) || member.deletion_id) requireApproved(member);
     await recordAccess(session.user.id);
   }
-  return withCookies(json({ user: session.user ? publicUser(session.user) : null,
+  return withCookies(json({ user: session.user ? publicUser({ ...session.user, name:member?.full_name || session.user.name }) : null,
     access: member ? publicAccess(member) : null,
     isAdmin: session.user?.emailVerified === true && adminAccess(member),
     googleEnabled: process.env.HUELLAS_GOOGLE_ENABLED === 'true' }),session.cookies);
@@ -43,6 +45,7 @@ export async function preferencesEndpoint(request, config) {
   guard(request, config, ['GET','POST']);
   const { session, user, member: initial } = await context(request, config);
   if (!['pending','approved'].includes(initial.status) || initial.deletion_id) requireApproved(initial);
+  requireConfirmedName(initial);
   let member = initial, groupId = initial.study_group || null;
   if (request.method === 'POST') {
     const input = await bodyJSON(request);
@@ -55,6 +58,18 @@ export async function preferencesEndpoint(request, config) {
   }
   const access = publicAccess(member);
   return withCookies(json({ groupId, access, study: member.status === 'approved' && !member.deletion_id && groupId ? studyForGroup(groupId) : null }),session.cookies);
+}
+export async function profileEndpoint(request, config) {
+  guard(request,config,['POST']);
+  const {session,user,member}=await context(request,config);
+  if (!['pending','approved'].includes(member.status) || member.deletion_id) requireApproved(member);
+  const input=await bodyJSON(request);
+  if (Object.keys(input).some(key=>key!=='name')) throw new HttpError(400,'INVALID_PROFILE','Solo podés confirmar tu propio nombre.');
+  const name=normalizeFullName(input.name);
+  if (!validFullName(name)) throw new HttpError(400,'INVALID_NAME',fullNameMessage);
+  await consumeLimit('profile:'+user.id,10,300,config);
+  const cookies=await confirmName(request,config,user,member,name);
+  return withCookies(json({ok:true}),[...session.cookies,...cookies]);
 }
 export async function usersEndpoint(request, config) {
   guard(request, config, ['GET']);
