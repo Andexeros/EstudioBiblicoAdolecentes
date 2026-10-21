@@ -332,8 +332,10 @@ $('auth-google-button').addEventListener('click', async () => {
   try {
     const data = await request('/api/auth/sign-in/social', { returnHash: location.hash });
     const url = new URL(data.url);
-    if (url.protocol !== 'https:' || !['accounts.google.com', 'accounts.googleusercontent.com'].includes(url.hostname)) throw new Error('No pudimos abrir Google. Intentá nuevamente.');
-    location.assign(url.href);
+    if (url.protocol !== 'https:' || url.username || url.password ||
+        ![data.authOrigin, 'https://accounts.google.com', 'https://accounts.googleusercontent.com'].includes(url.origin)) throw new Error('No pudimos abrir Google. Intentá nuevamente.');
+    // authOrigin comes from the same-origin server's Neon configuration. Keep the returned URL/token intact.
+    location.assign(data.url);
   } catch (error) { message(errorText(error), true); setBusy(false); }
 });
 

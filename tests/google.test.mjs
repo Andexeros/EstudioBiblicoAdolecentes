@@ -1,5 +1,7 @@
 import test,{beforeEach} from 'node:test';
 import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {runInNewContext} from 'node:vm';
 import {NEON_AUTH_SESSION_COOKIE_NAME as TOKEN} from '@neondatabase/auth/server';
 import {sessionEndpoint,profileEndpoint,preferencesEndpoint,lessonsEndpoint,usersEndpoint,adminEndpoint} from '../server/api.js';
 import {authProxy} from '../server/auth.js';
@@ -20,7 +22,7 @@ function backend(t){
    calls.push({url,body,init});
    if(url.endsWith('/get-session'))return Response.json(state.user?{user:state.user,session:{id:'s',token:'test-session',userId:state.user.id,createdAt:time,updatedAt:time,expiresAt:new Date(Date.now()+3600000).toISOString()}}:null);
    if(url.endsWith('/update-user')){if(state.updateStatus!==200)return Response.json({message:'private provider detail',token:'do-not-expose'},{status:state.updateStatus});state.user.name=body.name;return Response.json({status:true},{headers:{'Set-Cookie':`${TOKEN}=test-session; Path=/; HttpOnly; Secure; SameSite=Lax`}});}
-   return Response.json({url:'https://accounts.google.com/o/oauth2/v2/auth?state=test',redirect:true});
+   return Response.json(state.socialResponse || {url:'https://accounts.google.com/o/oauth2/v2/auth?state=test',redirect:true});
   }
   const{query,params}=body;queries.push({query,params});
   if(query.includes('huellas:membership'))return result(state.member?[state.member]:[]);
@@ -47,6 +49,85 @@ test('OAuth initiation fixes the provider and local callbacks, strips tokens and
  const sent=calls.find(c=>c.url.endsWith('/sign-in/social'));
  assert.equal(sent.body.provider,'google');assert.equal(sent.body.idToken,undefined);assert.equal(sent.body.role,undefined);
  assert.equal(sent.body.callbackURL,origin+'/api/auth-return?next=%23rut%2Fclaves');assert.equal(sent.body.newUserCallbackURL,sent.body.callbackURL);assert.equal(sent.body.errorCallbackURL,origin+'/?auth=error');
+});
+
+test('Neon intermediate OAuth URL and temporary token are preserved with the configured auth origin',async t=>{
+ const{state}=backend(t);
+ const url=baseUrl+'/sign-in/social/init?token=test-only.a%2Bb%2Fc%3D&state=keep%20this';
+ state.socialResponse={url,authOrigin:'https://attacker.example',token:'never-expose',redirect:true};
+ const response=await authProxy(req('/api/auth/sign-in/social',{returnHash:'#rut/claves',authOrigin:'https://attacker.example'}),config);
+ assert.equal(response.status,200);
+ assert.deepEqual(await response.json(),{url,authOrigin:new URL(baseUrl).origin});
+ assert.match(response.headers.get('cache-control'),/private, no-store/);
+});
+
+test('OAuth redirect validation rejects non-HTTPS, foreign origins, credentials, ports and missing URLs',async t=>{
+ const{state}=backend(t);
+ for(const url of [undefined,null,42,'','/relative','javascript:alert(1)','http://auth.example/neondb/auth/sign-in/social/init',
+  'https://auth.example.attacker.example/init','https://another-branch.example/init','https://auth.example:8443/init',
+  'https://user:password@auth.example/init','https://auth.example@attacker.example/init','https://accounts.google.com:8443/auth']){
+  state.socialResponse={url};
+  await denied(authProxy(req('/api/auth/sign-in/social',{}),config),'INVALID_OAUTH_REDIRECT');
+ }
+});
+
+// Exercise the actual button listener without a browser or extra test dependencies.
+const authSource=await readFile(new URL('../auth.js',import.meta.url),'utf8');
+const listenerStart=authSource.indexOf("$('auth-google-button').addEventListener('click'");
+const listenerEnd=authSource.indexOf('\n\nfunction bindDialog',listenerStart);
+assert(listenerStart>=0&&listenerEnd>listenerStart);
+const listenerSource=authSource.slice(listenerStart,listenerEnd);
+function googleButton(response){
+ let click;
+ const navigations=[],messages=[],requests=[];
+ const context={URL,busy:false,googleEnabled:true,
+  $:id=>{assert.equal(id,'auth-google-button');return{addEventListener(type,handler){assert.equal(type,'click');click=handler;}};},
+  location:{hash:'#rut/claves',assign:url=>navigations.push(url)},
+  window:{open(){assert.fail('OAuth must use the same tab, including after an asynchronous response');}},
+  message:(text,error=false)=>messages.push({text,error}),errorText:error=>error.message,
+  setBusy:value=>{context.busy=value;},
+  request:async(path,body)=>{requests.push({path,body});return typeof response==='function'?response():response;},
+ };
+ runInNewContext(listenerSource,context);
+ return{click,navigations,messages,requests,context};
+}
+
+test('Google button follows the asynchronous Neon URL in the same tab without changing its token',async()=>{
+ const url=baseUrl+'/sign-in/social/init?token=test-only.a%2Bb%2Fc%3D&state=keep%20this';
+ let release;
+ const pending=new Promise(resolve=>{release=resolve;});
+ const button=googleButton(()=>pending);
+ const first=button.click();
+ await button.click();
+ assert.equal(button.requests.length,1);assert.equal(button.navigations.length,0);assert.equal(button.context.busy,true);
+ release({url,authOrigin:new URL(baseUrl).origin});
+ await first;
+ assert.deepEqual(button.navigations,[url]);
+ assert.equal(button.requests[0].path,'/api/auth/sign-in/social');
+ assert.equal(button.requests[0].body.returnHash,'#rut/claves');
+ assert.deepEqual(Object.keys(button.requests[0].body),['returnHash']);
+ assert(!button.messages.some(item=>item.error));
+});
+
+test('Google button still accepts direct Google authorization responses',async()=>{
+ const url='https://accounts.google.com/o/oauth2/v2/auth?state=test-only';
+ const button=googleButton({url});await button.click();assert.deepEqual(button.navigations,[url]);
+});
+
+test('Google button refuses unexpected destinations and restores the retry state',async()=>{
+ for(const data of [
+  {url:'https://attacker.example/init',authOrigin:new URL(baseUrl).origin},
+  {url:baseUrl+'/sign-in/social/init?token=test-only'},
+  {url:'http://auth.example/init',authOrigin:'http://auth.example'},
+  {url:'https://user:password@auth.example/init',authOrigin:new URL(baseUrl).origin},
+  {url:'https://auth.example:8443/init',authOrigin:new URL(baseUrl).origin},
+  {url:'https://accounts.google.com:8443/auth'},
+ ]){
+  const button=googleButton(data);await button.click();assert.equal(button.navigations.length,0);
+  assert.equal(button.context.busy,false);assert.equal(button.messages.at(-1).error,true);
+ }
+ const failed=googleButton(()=>{throw new Error('Conexión interrumpida');});await failed.click();
+ assert.equal(failed.context.busy,false);assert.equal(failed.navigations.length,0);assert.equal(failed.messages.at(-1).error,true);
 });
 test('Google account discovery uses an authenticated ID and a read-only account query',async t=>{
  const{queries}=backend(t);const response=await(await sessionEndpoint(req('/api/session'),config)).json();

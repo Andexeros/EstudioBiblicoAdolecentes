@@ -82,10 +82,23 @@ export async function authProxy(request, config) {
   });
   const upstream = await handleAuthProxyRequest({ ...config, request: proxyRequest, path });
   const data = await upstream.json().catch(() => ({}));
+  let authOrigin;
+  if (upstream.ok && path === 'sign-in/social') {
+    // Managed Auth can return its own initialization URL before redirecting to Google.
+    // Trust the configured service origin, never an origin supplied by the client/provider JSON.
+    authOrigin = new URL(config.baseUrl).origin;
+    let target;
+    try { if (typeof data?.url === 'string') target = new URL(data.url); } catch { /* Reject invalid destinations below. */ }
+    if (!target || target.protocol !== 'https:' || target.username || target.password ||
+        ![authOrigin, 'https://accounts.google.com', 'https://accounts.googleusercontent.com'].includes(target.origin)) {
+      throw new HttpError(502, 'INVALID_OAUTH_REDIRECT', 'No pudimos abrir Google. Intentá nuevamente.');
+    }
+  }
   // Session tokens and provider metadata stay out of browser-readable responses.
   const safe = upstream.ok ? {
     ...(data.user ? { user: publicUser(data.user) } : {}),
     ...(typeof data.url === 'string' ? { url: data.url } : {}),
+    ...(authOrigin ? { authOrigin } : {}),
     ...(typeof data.status === 'boolean' ? { status: data.status } : {}),
   } : { code: typeof data.code === 'string' ? data.code : 'AUTH_ERROR', message: 'No pudimos completar la solicitud. Revisá tus datos e intentá nuevamente.' };
   const response = withCookies(json(path === 'sign-out' ? { status: true } : safe, path === 'sign-out' ? 200 : upstream.status), upstream.headers.getSetCookie());
