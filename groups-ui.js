@@ -1,6 +1,6 @@
 import { studyGroups, groupLabel } from './groups.js?v=20261020-groups1';
 
-export function createGroupExperience({ request, message, errorText }) {
+export function createGroupExperience({ request, message, errorText, onRestricted, onAccessChange }) {
   const $ = id => document.getElementById(id);
   let preferredGroup = null, study = null, admin = false, loadTicket = 0, appModule, saving = false;
   const cards = (containerId, name) => {
@@ -33,7 +33,7 @@ export function createGroupExperience({ request, message, errorText }) {
     appModule ||= await import('./app.js?v=20261020-clases1');
     if (ticket !== loadTicket) return;
     study = data;
-    $('auth-screen').hidden = true; $('group-welcome').hidden = true;
+    $('auth-screen').hidden = true; $('group-welcome').hidden = true; $('approval-screen').hidden = true;
     $('huellas-app').hidden = false; $('huellas-app').inert = false;
     appModule.mountHuellas(study.lessons, study);
     updateCollectionPicker();
@@ -65,8 +65,10 @@ export function createGroupExperience({ request, message, errorText }) {
       const ticket = ++loadTicket;
       try {
         const data = await request('/api/preferences', { groupId });
+        onAccessChange?.(data.access);
         preferredGroup = data.groupId;
         selectGroup('group-profile-form', preferredGroup);
+        if (data.access?.status !== 'approved') { onRestricted(data.access); return; }
         await applyStudy(data.study, ticket);
         if ($('account-dialog').open) $('account-dialog').close();
         $('group-notice').textContent = `Tu grupo es ${groupLabel(preferredGroup)}. Preferencia guardada.`;
@@ -101,15 +103,27 @@ export function createGroupExperience({ request, message, errorText }) {
     finally { $('collection-picker').disabled = false; }
   });
   return {
+    lock() {
+      ++loadTicket;
+      if (appModule && study) appModule.mountHuellas([], study);
+      study = null;
+      $('huellas-app').hidden = true; $('huellas-app').inert = true;
+    },
+    async setAdmin(value) {
+      admin = value === true; $('group-preview-tools').hidden = !admin;
+      if (!admin && study && study.groupId !== preferredGroup) await loadStudy(preferredGroup);
+    },
     async open(session) {
       admin = session.isAdmin === true; $('group-preview-tools').hidden = !admin;
       const ticket = ++loadTicket, data = await request('/api/preferences');
+      onAccessChange?.(data.access);
       preferredGroup = data.groupId; selectGroup('group-profile-form', preferredGroup);
       $('group-save').disabled = !preferredGroup;
       if (!preferredGroup) {
         $('auth-screen').hidden = true; $('huellas-app').hidden = true; $('huellas-app').inert = true;
-        $('group-welcome').hidden = false; $('group-welcome-heading').focus();
-      } else await applyStudy(data.study, ticket);
+        $('approval-screen').hidden = true; $('group-welcome').hidden = false; $('group-welcome-heading').focus();
+      } else if (data.access?.status !== 'approved') onRestricted(data.access);
+      else await applyStudy(data.study, ticket);
     },
   };
 }

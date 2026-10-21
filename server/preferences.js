@@ -1,6 +1,7 @@
 import { database } from './access.js';
 import { HttpError } from './http.js';
 import { groupById } from '../groups.js';
+import { databaseError } from './memberships.js';
 
 export function validateGroup(groupId) {
   if (!groupById(groupId)) throw new HttpError(400, 'INVALID_GROUP', 'Elegí uno de los grupos disponibles.');
@@ -14,8 +15,7 @@ export async function userGroup(userId) {
 export async function saveUserGroup(userId, groupId) {
   validateGroup(groupId);
   const sql = database();
-  await sql`INSERT INTO public.huellas_user_preferences (user_id, study_group)
-    VALUES (${userId}, ${groupId}) ON CONFLICT (user_id)
-    DO UPDATE SET study_group = EXCLUDED.study_group, updated_at = now()`;
+  try { await sql`/* huellas:own-group */ SELECT public.huellas_set_own_group(${userId},${groupId})`; }
+  catch (error) { throw databaseError(error); }
   return groupId;
 }

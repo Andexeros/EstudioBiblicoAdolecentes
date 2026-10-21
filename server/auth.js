@@ -4,6 +4,8 @@ import {
   NEON_AUTH_SESSION_CHALLENGE_COOKIE_NAME, serializeSetCookie,
 } from '@neondatabase/auth/server';
 import { HttpError, bodyJSON, guard, json } from './http.js';
+import { fullNameMessage, normalizeFullName, validFullName } from '../name-rules.js';
+import { authLimit } from './limits.js';
 
 const endpoints = new Set(['sign-up/email', 'sign-in/email', 'sign-in/social', 'sign-out',
   'send-verification-email', 'email-otp/verify-email', 'request-password-reset', 'reset-password']);
@@ -11,10 +13,6 @@ const endpoints = new Set(['sign-up/email', 'sign-in/email', 'sign-in/social', '
 export function safeHash(value) { return typeof value === 'string' && /^#[a-z0-9-]+(?:\/(?:historia|claves|conclusion|referencias))?$/i.test(value) ? value : ''; }
 export function publicUser(user) {
   return { id: user.id, name: user.name || '', email: user.email, emailVerified: user.emailVerified === true, createdAt: user.createdAt };
-}
-export function isAdmin(user) {
-  const admins = (process.env.HUELLAS_ADMIN_EMAILS || '').split(',').map(v => v.trim().toLowerCase()).filter(Boolean);
-  return user?.emailVerified === true && admins.includes(String(user.email).toLowerCase());
 }
 
 export async function getSession(request, config, fresh = false) {
@@ -58,8 +56,8 @@ export async function authProxy(request, config) {
   let payload;
   switch (path) {
     case 'sign-up/email': {
-      const name = typeof input.name === 'string' ? input.name.trim().replace(/\s+/g, ' ') : '';
-      if (name.length < 2 || name.length > 80 || /[\u0000-\u001f]/.test(name)) throw new HttpError(400, 'INVALID_NAME', 'Escribí tu nombre (entre 2 y 80 caracteres).');
+      const name = normalizeFullName(input.name);
+      if (!validFullName(name)) throw new HttpError(400, 'INVALID_NAME', fullNameMessage);
       payload = { name, email: email(input.email), password: password(input.password), callbackURL: callback.href, rememberMe: input.rememberMe !== false };
       break;
     }
@@ -78,6 +76,7 @@ export async function authProxy(request, config) {
       payload = { token: input.token, newPassword: password(input.newPassword) }; break;
     case 'sign-out': payload = {}; break;
   }
+  await authLimit(request, path, payload, config);
   const proxyRequest = new Request(new URL('/api/auth/' + path, config.origin), {
     method: 'POST', headers: request.headers, body: JSON.stringify(payload),
   });

@@ -6,7 +6,8 @@ import {
   NEON_AUTH_SESSION_CHALLENGE_COOKIE_NAME as CHALLENGE,
 } from '@neondatabase/auth/server';
 import { configuration, fromNode, toNode, nodeHandler, HttpError, bodyJSON } from '../server/http.js';
-import { authProxy, authReturn, getSession, safeHash, isAdmin } from '../server/auth.js';
+import { authProxy, authReturn, getSession, safeHash } from '../server/auth.js';
+import { adminAccess } from '../server/memberships.js';
 import { sessionEndpoint, lessonsEndpoint, usersEndpoint } from '../server/api.js';
 import { recordAccess, registeredUsers } from '../server/access.js';
 import { lessons } from '../lessons.js';
@@ -29,6 +30,7 @@ function upstream(t, responder) {
   const calls = [];
   t.mock.method(globalThis, 'fetch', async (url, init = {}) => {
     const item = { url: String(url), method: init.method || 'GET', headers: new Headers(init.headers), body: init.body ? JSON.parse(init.body) : undefined };
+    if (item.body?.query?.includes('huellas:limit')) return fakeSQL([{ allowed: true }]);
     calls.push(item);
     return responder(item);
   });
@@ -38,7 +40,7 @@ const rejectCode = (promise, code) => assert.rejects(promise, error => error ins
 function responseCookies(response) { return response.headers.getSetCookie().map(value => value.split(';')[0]).join('; '); }
 function fakeSQL(rows) {
   const names = Object.keys(rows[0] || { id: '' });
-  return Response.json({ fields: names.map(name => ({ name, dataTypeID: 25 })), rows: rows.map(row => names.map(name => row[name])), rowCount: rows.length, command: 'SELECT' });
+  return Response.json({ fields: names.map(name => ({ name, dataTypeID: typeof rows[0]?.[name] === 'boolean' ? 16 : 25 })), rows: rows.map(row => names.map(name => typeof row[name] === 'boolean' ? (row[name] ? 't' : 'f') : row[name] ?? null)), rowCount: rows.length, command: 'SELECT' });
 }
 
 beforeEach(() => {
@@ -47,7 +49,7 @@ beforeEach(() => {
   process.env.HUELLAS_SITE_URL = origin;
   process.env.HUELLAS_ADMIN_EMAILS = '';
   process.env.HUELLAS_GOOGLE_ENABLED = 'false';
-  delete process.env.DATABASE_URL;
+  process.env.DATABASE_URL = 'postgresql://owner:fake-password@ep-test.us-east-2.aws.neon.tech/neondb?sslmode=require';
 });
 
 test('anonymous visitors cannot retrieve classes or the user directory', async t => {
@@ -60,7 +62,7 @@ test('anonymous visitors cannot retrieve classes or the user directory', async t
 
 test('a verified session returns all original classes without session tokens', async t => {
   process.env.DATABASE_URL = 'postgresql://owner:fake-password@ep-test.us-east-2.aws.neon.tech/neondb?sslmode=require';
-  upstream(t, item => item.url.startsWith(baseUrl) ? Response.json(envelope()) : fakeSQL([{ study_group: 'adolescentes' }]));
+  upstream(t, item => item.url.startsWith(baseUrl) ? Response.json(envelope()) : fakeSQL([{ user_id: user.id, status: 'approved', role: 'user', version: 1, study_group: 'adolescentes' }]));
   const response = await lessonsEndpoint(req('/api/lessons', { cookies: cookie }), config);
   assert.deepEqual((await response.json()).lessons, lessons);
   assert.match(response.headers.get('cache-control'), /private, no-store/);
@@ -108,9 +110,10 @@ test('fresh administrator validation bypasses the signed session cache', async t
   revoked = true;
   assert.equal((await getSession(req('/api/session', { cookies: jar }), config, true)).user, null);
   process.env.HUELLAS_ADMIN_EMAILS = ' ALGUIEN@example.com,otra@example.com ';
-  assert.equal(isAdmin(user), true);
-  assert.equal(isAdmin({ ...user, emailVerified: false }), false);
-  assert.equal(isAdmin({ ...user, email: 'ajeno@example.com' }), false);
+  assert.equal(adminAccess({ status: 'approved', role: 'user', email: user.email }), false, 'the legacy email allowlist never grants a role');
+  assert.equal(adminAccess({ status: 'approved', role: 'admin' }), true);
+  assert.equal(adminAccess({ status: 'blocked', role: 'admin' }), false);
+  assert.equal(adminAccess({ status: 'approved', role: 'owner', deletion_id: 'pending-delete' }), false);
 });
 
 test('foreign origins, missing POST origin and unsupported proxy endpoints are rejected', async () => {
@@ -162,7 +165,7 @@ test('registration, OTP and password recovery use only the expected payloads', a
   await authProxy(req('/api/auth/reset-password', { method: 'POST', body: { token: 'reset-token', newPassword: 'new-password', userId: 'other-user' } }), config);
   assert.deepEqual(calls[3].body, { token: 'reset-token', newPassword: 'new-password' });
   await rejectCode(authProxy(req('/api/auth/email-otp/verify-email', { method: 'POST', body: { email: user.email, otp: 'wrong' } }), config), 'INVALID_OTP');
-  await rejectCode(authProxy(req('/api/auth/sign-up/email', { method: 'POST', body: { name: 'Ana', email: user.email, password: 'short' } }), config), 'INVALID_PASSWORD');
+  await rejectCode(authProxy(req('/api/auth/sign-up/email', { method: 'POST', body: { name: 'Ana Pérez', email: user.email, password: 'short' } }), config), 'INVALID_PASSWORD');
 });
 
 test('Google is opt-in and cannot accept arbitrary provider tokens or callback URLs', async t => {
@@ -200,11 +203,15 @@ test('logout clears token, cache and OAuth challenge cookies even after upstream
   for (const name of [TOKEN, CACHE, CHALLENGE]) assert(response.headers.getSetCookie().some(value => value.startsWith(name + '=') && /Max-Age=0/i.test(value)));
 });
 
-test('only a verified allowlisted administrator may query registered users', async t => {
-  upstream(t, () => Response.json(envelope()));
+test('only a verified database administrator may query registered users', async t => {
+  const member = { user_id: user.id, status: 'approved', role: 'user', version: 1 };
+  upstream(t, item => item.url.startsWith(baseUrl) ? Response.json(envelope()) : fakeSQL([member]));
   await rejectCode(usersEndpoint(req('/api/users', { cookies: cookie }), config), 'FORBIDDEN');
   process.env.HUELLAS_ADMIN_EMAILS = user.email;
+  await rejectCode(usersEndpoint(req('/api/users', { cookies: cookie }), config), 'FORBIDDEN');
+  member.role = 'admin';
   await rejectCode(usersEndpoint(req('/api/users?offset=0%20OR%201=1', { cookies: cookie }), config), 'INVALID_PAGE');
+  delete process.env.DATABASE_URL;
   await rejectCode(usersEndpoint(req('/api/users', { cookies: cookie }), config), 'DATABASE_NOT_CONFIGURED');
 });
 

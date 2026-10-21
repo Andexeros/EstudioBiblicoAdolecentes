@@ -1,4 +1,6 @@
-import { createGroupExperience } from './groups-ui.js?v=20261020-groups1';
+import { createGroupExperience } from './groups-ui.js?v=20261021-approval1';
+import { createAdminPanel } from './admin.js?v=20261021-approval1';
+import { normalizeFullName, validFullName, fullNameMessage } from './name-rules.js';
 import { groupLabel } from './groups.js?v=20261020-groups1';
 
 const $ = id => document.getElementById(id);
@@ -9,7 +11,7 @@ const fields = $('auth-fields');
 const tabs = [...$('auth-tabs').querySelectorAll('[role="tab"]')];
 let mode = 'login', busy = false, available = false, googleEnabled = false;
 let currentUser = null, mounted = false, checkingSession = false, resendUntil = 0, resendTimer;
-let usersOffset = 0, usersHasMore = false, usersTicket = 0;
+let currentAccess = null, monitorTimer;
 const entry = new URL(location.href);
 let resetToken = entry.searchParams.get('auth') === 'reset' ? entry.searchParams.get('token') : '';
 const resetExpired = entry.searchParams.get('auth') === 'reset' && !resetToken;
@@ -90,7 +92,9 @@ async function request(path, body) {
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
       const error = new Error(data.message || 'No pudimos completar la solicitud. Intentá nuevamente.');
-      error.code = data.code; error.status = response.status; throw error;
+      error.code = data.code; error.status = response.status;
+      if (/^ACCOUNT_(PENDING|BLOCKED|REJECTED|UNAVAILABLE)$/.test(error.code || '')) queueMicrotask(() => checkCurrentSession(true));
+      throw error;
     }
     return data;
   } catch (error) {
@@ -110,34 +114,82 @@ function errorText(error) {
   return error.message;
 }
 
-const groupExperience = createGroupExperience({ request, message, errorText });
+const groupExperience = createGroupExperience({ request, message, errorText, onRestricted: showApproval, onAccessChange: access => { currentAccess = access; } });
+const adminPanel = createAdminPanel({ request, errorText, onPermissionChange: () => checkCurrentSession(true) });
 
-async function openApplication(session) {
+function lockPrivateContent() {
+  groupExperience.lock();
+  document.querySelector('#huellas-music audio')?.pause();
+  for (const dialog of document.querySelectorAll('dialog[open]')) dialog.close();
+  adminPanel.setSession({access:{role:'user',status:'pending'},isAdmin:false});
+}
+function showApproval(access) {
+  currentAccess = access || {status:'pending',role:'user',groupId:null};
+  lockPrivateContent();
+  screen.hidden = true; $('group-welcome').hidden = true;
+  const wasHidden = $('approval-screen').hidden;
+  $('approval-screen').hidden = false;
+  const state = currentAccess.status;
+  const copy = state === 'rejected'
+    ? ['SOLICITUD RECHAZADA','Tu solicitud fue revisada.','Por el momento tu cuenta no fue aprobada. Podés consultar con el equipo de Huellas. No necesitás registrarte nuevamente.']
+    : state === 'blocked'
+    ? ['CUENTA BLOQUEADA','Tu acceso está pausado.','Un administrador bloqueó el acceso de tu cuenta. Podés consultar con el equipo de Huellas y volver para comprobar su estado.']
+    : ['PENDIENTE DE APROBACIÓN','¡Tu cuenta está casi lista!','Tu correo ya fue verificado. Estamos esperando que un administrador apruebe tu solicitud para que puedas comenzar a explorar los estudios bíblicos.'];
+  $('approval-badge').textContent = copy[0]; $('approval-title').textContent = copy[1]; $('approval-description').textContent = copy[2];
+  $('approval-group').textContent = currentAccess.groupId ? 'Tu grupo · ' + groupLabel(currentAccess.groupId) : '';
+  message('', false, 'approval-message');
+  if (wasHidden) $('approval-title').focus({preventScroll:true});
+}
+function armMonitor() {
+  clearTimeout(monitorTimer);
+  if (!document.hidden && currentUser?.emailVerified) monitorTimer = setTimeout(async () => { await checkCurrentSession(); armMonitor(); },30000);
+}
+async function openApplication(session, record = true) {
   if (!session.user?.emailVerified) {
     if (session.user?.email) $('auth-email').value = session.user.email;
-    setMode(session.user ? 'verify' : 'login');
-    return false;
+    setMode(session.user ? 'verify' : 'login'); return false;
   }
-  currentUser = session.user;
+  currentUser = session.user; currentAccess = session.access;
   $('auth-password').value = ''; $('auth-confirm').value = '';
-  message('Abriendo tus clases…');
-  // One access write per page opening; no polling or background activity tracking.
-  await request('/api/session', {});
-  $('account-name').textContent = session.user.name || 'Tu cuenta';
-  $('account-email').textContent = session.user.email;
-  $('open-users').hidden = !session.isAdmin;
-  try {
-    await groupExperience.open(session);
-    mounted = true;
-  } catch (error) {
-    application.hidden = true;
-    application.inert = true;
-    screen.hidden = false;
-    throw error;
+  $('account-name').textContent = session.user.name || 'Tu cuenta'; $('account-email').textContent = session.user.email;
+  adminPanel.setSession(session);
+  if (['blocked','rejected'].includes(session.access?.status)) {
+    showApproval(session.access); mounted = true; armMonitor(); return true;
   }
-  document.title = 'Huellas · Estudios Bíblicos';
-  return true;
+  message('Comprobando el acceso a Huellas…');
+  if (record) await request('/api/session', {});
+  try { await groupExperience.open(session); mounted = true; }
+  catch (error) { application.hidden = true; application.inert = true; screen.hidden = false; throw error; }
+  document.title = 'Huellas · Estudios Bíblicos'; armMonitor(); return true;
 }
+async function checkCurrentSession(manual = false) {
+  if (checkingSession || (!manual && document.hidden) || !currentUser) return;
+  checkingSession = true; $('approval-refresh').disabled = true;
+  try {
+    const session = await request('/api/session');
+    if (!session.user?.emailVerified || session.user.id !== currentUser.id) {
+      lockPrivateContent(); location.reload(); return;
+    }
+    const previous = currentAccess;
+    adminPanel.setSession(session);
+    if (!previous || previous.status !== session.access?.status || previous.groupId !== session.access?.groupId) {
+      await openApplication(session,false);
+    } else {
+      currentAccess = session.access;
+      if (session.access?.status === 'approved') await groupExperience.setAdmin(session.isAdmin);
+      else if (manual) message('Tu solicitud todavía conserva el mismo estado.',false,'approval-message');
+    }
+  } catch (error) {
+    if ([401,403].includes(error.status)) { lockPrivateContent(); location.reload(); }
+    else if (manual || !$('approval-screen').hidden) message(errorText(error),true,'approval-message');
+  } finally { checkingSession = false; $('approval-refresh').disabled = false; }
+}
+$('approval-refresh').addEventListener('click',()=>checkCurrentSession(true));
+$('approval-logout').addEventListener('click',async()=>{
+  $('approval-logout').disabled = true;
+  try { await request('/api/auth/sign-out',{}); location.replace(location.pathname+location.hash); }
+  catch(error){message(errorText(error),true,'approval-message');$('approval-logout').disabled=false;}
+});
 
 async function bootstrap() {
   available = false; setBusy(true); message('Comprobando tu sesión…'); $('auth-retry').hidden = true;
@@ -160,8 +212,9 @@ form.addEventListener('submit', async event => {
   if (mode === 'reset' && $('auth-password').value !== $('auth-confirm').value) {
     message('Las contraseñas no coinciden.', true); $('auth-confirm').focus(); return;
   }
+  if (mode === 'register' && !validFullName($('auth-name').value)) { message(fullNameMessage,true); $('auth-name').focus(); return; }
   const email = $('auth-email').value.trim();
-  const payload = { email, password: $('auth-password').value, name: $('auth-name').value.trim(),
+  const payload = { email, password: $('auth-password').value, name: normalizeFullName($('auth-name').value),
     rememberMe: mode === 'login' ? $('auth-remember').checked : true, returnHash: location.hash };
   setBusy(true); message();
   try {
@@ -260,51 +313,10 @@ $('auth-logout').addEventListener('click', async () => {
   catch (error) { message(errorText(error), true, 'account-message'); $('auth-logout').disabled = false; }
 });
 
-const dateFormat = new Intl.DateTimeFormat('es-AR', { dateStyle: 'short', timeStyle: 'short', timeZone: 'America/Argentina/Buenos_Aires' });
-function dateText(value) { return value && !Number.isNaN(Date.parse(value)) ? dateFormat.format(new Date(value)) : 'Sin acceso registrado'; }
-async function loadUsers(offset) {
-  const ticket = ++usersTicket;
-  $('users-previous').disabled = true; $('users-next').disabled = true;
-  message('Cargando usuarios…', false, 'users-message');
-  try {
-    const data = await request('/api/users?offset=' + offset + '&group=' + encodeURIComponent($('users-group-filter').value));
-    if (ticket !== usersTicket) return;
-    usersOffset = offset; usersHasMore = data.hasMore;
-    const fragment = document.createDocumentFragment();
-    data.users.forEach(user => {
-      const row = document.createElement('tr');
-      const person = document.createElement('td');
-      const name = document.createElement('strong'); name.textContent = user.name || 'Sin nombre';
-      const email = document.createElement('span'); email.textContent = user.email;
-      if (user.emailVerified !== true) { const pending = document.createElement('span'); pending.textContent = 'Correo pendiente de verificación'; person.append(pending); }
-      person.prepend(name, email); row.append(person);
-      const group = document.createElement('td'); group.textContent = groupLabel(user.study_group); row.append(group);
-      for (const value of [user.createdAt, user.last_seen_at]) { const cell = document.createElement('td'); cell.textContent = dateText(value); row.append(cell); }
-      fragment.append(row);
-    });
-    $('users-rows').replaceChildren(fragment);
-    message(`${data.total} ${data.total === 1 ? 'cuenta registrada' : 'cuentas registradas'}.`, false, 'users-message');
-    $('users-page').textContent = data.total ? `${offset + 1}–${offset + data.users.length}` : 'Sin usuarios';
-  } catch (error) {
-    if (ticket !== usersTicket) return;
-    $('users-rows').replaceChildren(); message(errorText(error), true, 'users-message');
-  } finally { if (ticket === usersTicket) { $('users-previous').disabled = usersOffset === 0; $('users-next').disabled = !usersHasMore; } }
-}
-$('users-group-filter').addEventListener('change', () => loadUsers(0));
-$('open-users').addEventListener('click', () => { $('account-dialog').close(); $('users-dialog').showModal(); loadUsers(0); });
-$('users-previous').addEventListener('click', () => loadUsers(Math.max(0, usersOffset - 50)));
-$('users-next').addEventListener('click', () => loadUsers(usersOffset + 50));
-document.addEventListener('visibilitychange', async () => {
-  if (document.hidden || !mounted || checkingSession) return;
-  checkingSession = true;
-  try {
-    const session = await request('/api/session');
-    if (!session.user?.emailVerified || session.user.id !== currentUser?.id) {
-      application.hidden = true; application.inert = true; location.reload();
-    }
-  }
-  catch { /* Keep the page readable during a temporary connection failure; APIs still validate each request. */ }
-  finally { checkingSession = false; }
+document.addEventListener('visibilitychange',async()=>{
+  clearTimeout(monitorTimer);
+  if (document.hidden || !mounted) return;
+  await checkCurrentSession(); armMonitor();
 });
 window.addEventListener('pageshow', event => {
   // A restored page may still hold the previous user's content after logout in another tab.

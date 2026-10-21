@@ -50,9 +50,11 @@ export async function bodyJSON(request) {
 export async function fromNode(req, config) {
   const headers = new Headers();
   for (const [name, value] of Object.entries(req.headers || {})) {
-    if (value === undefined || /^(host|connection|content-length|transfer-encoding|authorization)$/i.test(name) || /^x-neon-/i.test(name)) continue;
+    if (value === undefined || /^(host|connection|content-length|transfer-encoding|authorization)$/i.test(name) || /^(x-neon-|x-huellas-)/i.test(name)) continue;
     headers.set(name, Array.isArray(value) ? value.join('; ') : value);
   }
+  const clientIp = process.env.VERCEL === '1' ? String(req.headers?.['x-vercel-forwarded-for'] || req.socket?.remoteAddress || 'unavailable').split(',')[0].trim() : req.socket?.remoteAddress || 'unavailable';
+  headers.set('x-huellas-client-ip', clientIp.slice(0,128));
   let body;
   if (!['GET', 'HEAD'].includes(req.method)) {
     if (req.body !== undefined) body = Buffer.isBuffer(req.body) ? req.body : typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
