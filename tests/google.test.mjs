@@ -160,7 +160,7 @@ test('an existing linked owner keeps their ID, role, approval and group after co
  const{state}=backend(t);state.member.role='owner';state.member.status='approved';state.member.study_group='adolescentes';
  await profileEndpoint(req('/api/profile',{name:'Andrés Abel Pravata'}),config);
  const data=await(await sessionEndpoint(req('/api/session'),config)).json();assert.equal(data.user.id,'same-user-id');assert.equal(data.access.role,'owner');assert.equal(data.access.status,'approved');assert.equal(data.access.groupId,'adolescentes');assert.equal(data.isAdmin,true);
- assert.equal((await(await lessonsEndpoint(req('/api/lessons'),config)).json()).lessons.length,15);
+ assert.equal((await(await lessonsEndpoint(req('/api/lessons'),config)).json()).lessons.length,16);
 });
 test('anonymous and unverified sessions cannot confirm a name',async t=>{
  const{state,calls,queries}=backend(t);state.user=null;await denied(profileEndpoint(req('/api/profile',{name:'Ana Pérez'}),config),'UNAUTHENTICATED');

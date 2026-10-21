@@ -54,7 +54,7 @@ test('a verified existing account without a preference receives onboarding and n
 test('saving and retrieving a group survives a different device session cookie', async t => {
   const { saved, queries } = backend(t);
   let result = await (await preferencesEndpoint(request('/api/preferences', { groupId: 'adolescentes' }), config)).json();
-  assert.equal(saved.get(person.id), 'adolescentes'); assert.deepEqual(result.study.lessons, lessons);
+  assert.equal(saved.get(person.id), 'adolescentes'); assert.deepEqual(result.study.lessons, studyForGroup('adolescentes').lessons);
   assert.equal(queries.filter(item => item.query.includes('huellas_set_own_group')).length, 1, 'one transactional preference write');
   result = await (await preferencesEndpoint(request('/api/preferences', undefined, `${TOKEN}=another-device-session`), config)).json();
   assert.equal(result.groupId, 'adolescentes');
@@ -118,7 +118,7 @@ test('group selection never grants administrative access or previews', async t =
 test('administrators can preview any group without changing their preference', async t => {
   const { saved, queries, state } = backend(t); state.member.role = 'owner'; saved.set(person.id, 'grande');
   const result = await (await lessonsEndpoint(request('/api/lessons?previewGroup=adolescentes'), config)).json();
-  assert.deepEqual(result.lessons, lessons); assert.equal(saved.get(person.id), 'grande'); assert(queries.every(item => item.query.includes('huellas:membership')));
+  assert.deepEqual(result.lessons, studyForGroup('adolescentes').lessons); assert.equal(saved.get(person.id), 'grande'); assert(queries.every(item => item.query.includes('huellas:membership')));
   await reject(lessonsEndpoint(request('/api/lessons?previewGroup=adultos'), config), 'INVALID_GROUP');
 });
 test('administrative group filters are validated and parameterized; unassigned users remain visible', async t => {
@@ -131,11 +131,15 @@ test('administrative group filters are validated and parameterized; unassigned u
   const count = queries.length;
   await reject(usersEndpoint(request('/api/users?group=admin'), config), 'INVALID_GROUP'); assert.equal(queries.length, count + 1, 'fresh authorization still runs before rejecting a filter');
 });
-test('Adolescentes preserves the 15 exact lesson objects, order and 161 references', () => {
-  const study = studyForGroup('adolescentes'); assert.deepEqual(study.lessons, lessons);
+test('Adolescentes preserves the original 15 classes and appends only the shared Santa Cena', () => {
+  const study = studyForGroup('adolescentes'); assert.deepEqual(study.lessons.slice(0, lessons.length), lessons);
   for (let index = 0; index < lessons.length; index++) assert.equal(study.lessons[index], lessons[index]);
-  assert.equal(study.lessons.reduce((total, lesson) => total + lesson.references.length, 0), 161);
-  assert.equal(studyAssignments.filter(item => item.groupIds.includes('adolescentes')).length, 15);
+  assert.equal(study.lessons.slice(0, lessons.length).reduce((total, lesson) => total + lesson.references.length, 0), 161);
+  assert.equal(study.lessons.length, 16);
+  assert.deepEqual(study.lessons.slice(lessons.length).map(lesson => lesson.id), ['santa-cena']);
+  const cena = study.lessons.at(-1);
+  for (const group of ['intermedio', 'grande']) assert.equal(studyForGroup(group).lessons.find(lesson => lesson.id === 'santa-cena'), cena);
+  assert.equal(studyAssignments.filter(item => item.groupIds.includes('adolescentes')).length, 16);
 });
 test('Intermedio and Grande share twelve classes with valid collection metadata and their official names', () => {
   for (const id of ['intermedio', 'grande']) {

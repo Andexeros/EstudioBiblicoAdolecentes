@@ -20,7 +20,10 @@ test('both new collections share the same objects in the approved order without 
     assert.equal(grande.lessons[i], added[i]);
   }
   assert.equal(new Set(studyLessons.map(lesson => lesson.id)).size, 27);
-  assert.deepEqual(studyForGroup('adolescentes').lessons, lessons);
+  const adolescentes = studyForGroup('adolescentes').lessons;
+  assert.deepEqual(adolescentes.slice(0, lessons.length), lessons);
+  assert.deepEqual(adolescentes.slice(lessons.length), [get('santa-cena')]);
+  assert.equal(adolescentes.at(-1), intermedio.lessons[0]);
   assert(lessons.every(lesson => !ids.includes(lesson.id)));
 });
 
@@ -87,13 +90,15 @@ test('new artwork uses the original atlas format and only the ten new illustrati
   const cells = new Set();
   for (const lesson of added) {
     const [atlas, cell] = lesson.art;
-    assert(['a','d','e'].includes(atlas)); assert(Number.isInteger(cell) && cell >= 0 && cell < 6);
+    assert(['a','d','e','f'].includes(atlas)); assert(Number.isInteger(cell) && cell >= 0 && cell < 6);
     const path = new URL(`../atlas-${atlas}.webp`, import.meta.url);
     assert((await stat(path)).size > 1000);
     if (atlas !== 'a') cells.add(`${atlas}${cell}`);
   }
   assert.equal(cells.size, 10);
-  for (const atlas of ['d','e']) {
+  assert.deepEqual(get('amigo-de-jesus').art, ['f', 0]);
+  assert.deepEqual(get('historia-asamblea-cristiana').art, ['f', 1]);
+  for (const atlas of ['d','e','f']) {
     const bytes = await readFile(new URL(`../atlas-${atlas}.webp`, import.meta.url));
     assert.equal(bytes.subarray(0,4).toString(), 'RIFF'); assert.equal(bytes.subarray(8,12).toString(), 'WEBP');
   }

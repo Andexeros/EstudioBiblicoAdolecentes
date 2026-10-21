@@ -10,7 +10,7 @@ await import('../build.mjs');
 test('the static build contains no class dataset, server source, database script or secrets', async () => {
   const files = await readdir(new URL('dist/', root));
   for (const name of ['lessons.js', 'server', 'api', 'migrations', 'neon-login.sql', '.env.local', '.env.example', 'package-lock.json', 'node_modules', 'CONFIGURAR_LOGIN.md']) assert(!files.includes(name), name);
-  for (const name of ['index.html', 'app.js', 'auth.js', 'auth.css', 'admin.js', 'admin.css', 'name-rules.js', 'groups.js', 'groups-ui.js', 'groups.css', 'art.js', 'install.js', 'manifest.webmanifest']) assert(files.includes(name));
+  for (const name of ['index.html', 'app.js', 'auth.js', 'auth.css', 'admin.js', 'admin.css', 'name-rules.js', 'groups.js', 'groups-ui.js', 'groups.css', 'art.js', 'atlas-f.webp', 'install.js', 'manifest.webmanifest']) assert(files.includes(name));
   const html = await readFile(new URL('dist/index.html', root), 'utf8');
   const app = await readFile(new URL('dist/app.js', root), 'utf8');
   assert(!html.includes(lessons[0].description));
@@ -35,7 +35,7 @@ test('the local server also denies direct source and class-file access', async (
   assert.equal((await invoke('/%2e%2e%2fpackage.json')).status, 403);
 });
 
-test('the collection still has 15 classes, all 161 references and the unchanged PWA identity', async () => {
+test('the original dataset keeps its 15 classes, all 161 references and the unchanged PWA identity', async () => {
   assert.equal(lessons.length, 15);
   assert.equal(lessons.reduce((sum, lesson) => sum + lesson.references.length, 0), 161);
   const manifest = JSON.parse(await readFile(new URL('dist/manifest.webmanifest', root), 'utf8'));

@@ -11,6 +11,7 @@ import { adminAccess } from '../server/memberships.js';
 import { sessionEndpoint, lessonsEndpoint, usersEndpoint } from '../server/api.js';
 import { recordAccess, registeredUsers } from '../server/access.js';
 import { lessons } from '../lessons.js';
+import { studyForGroup } from '../server/studies.js';
 
 const origin = 'https://huellas.example';
 const baseUrl = 'https://auth.example/neondb/auth';
@@ -64,7 +65,7 @@ test('a verified session returns all original classes without session tokens', a
   process.env.DATABASE_URL = 'postgresql://owner:fake-password@ep-test.us-east-2.aws.neon.tech/neondb?sslmode=require';
   upstream(t, item => item.url.startsWith(baseUrl) ? Response.json(envelope()) : fakeSQL([{ user_id: user.id, status: 'approved', role: 'user', version: 1, study_group: 'adolescentes' }]));
   const response = await lessonsEndpoint(req('/api/lessons', { cookies: cookie }), config);
-  assert.deepEqual((await response.json()).lessons, lessons);
+  assert.deepEqual((await response.json()).lessons, studyForGroup('adolescentes').lessons);
   assert.match(response.headers.get('cache-control'), /private, no-store/);
   const session = await (await sessionEndpoint(req('/api/session', { cookies: cookie }), config)).json();
   assert.equal(session.user.id, user.id);

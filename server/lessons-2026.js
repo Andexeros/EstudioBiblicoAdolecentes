@@ -1,6 +1,6 @@
 // Contenido adaptado de las 14 presentaciones recibidas para Intermedio y Grande.
 // Datos protegidos: se entregan únicamente desde los endpoints autenticados.
-// Una misma clase se asocia a ambos grupos en studies.js, sin duplicar su contenido.
+// Las clases se comparten entre grupos mediante studies.js, sin duplicar su contenido.
 export const lessonsIntermedioGrande2026 = [
   {
     "id": "santa-cena",
@@ -459,8 +459,8 @@ export const lessonsIntermedioGrande2026 = [
     },
     "color": "#83dfbd",
     "art": [
-      "d",
-      1
+      "f",
+      0
     ],
     "symbol": "dos manos unidas",
     "artWord": "AMISTAD",
@@ -3651,10 +3651,10 @@ export const lessonsIntermedioGrande2026 = [
     },
     "color": "#ebc57d",
     "art": [
-      "e",
-      3
+      "f",
+      1
     ],
-    "symbol": "lámpara de aceite encendida",
+    "symbol": "árbol de cristal con raíces visibles",
     "artWord": "RAÍCES",
     "artCaption": "Una historia de fe que sigue pasando de mano en mano.",
     "summary": "Los orígenes y la expansión de la Asamblea Cristiana.",
