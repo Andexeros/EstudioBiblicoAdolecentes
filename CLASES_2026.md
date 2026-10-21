@@ -1,18 +1,18 @@
 # Huellas · Clases 2026 para Intermedio y Grande
 
-Este parche se aplica sobre el proyecto que ya incorpora los grupos, correspondiente al commit `046ee7b` («grupos»). Contiene solamente los archivos nuevos o modificados para agregar las clases. No es un proyecto completo.
+Esta corrección se aplica sobre el proyecto que ya incorpora las clases de los grupos, correspondiente al commit `f0ac468` («CLASES GRUPOS»). Quita la atribución de autor de la cita y del relato de «Raíces». El ZIP contiene solamente tres archivos modificados: `server/lessons-2026.js`, `tests/content-2026.test.mjs` y esta guía. No es un proyecto completo.
 
 ## Actualización con GitHub Desktop
 
 1. En GitHub Desktop, abrí tu repositorio de Huellas y usá **Fetch origin / Pull origin** para tener los últimos cambios. Podés guardar un commit de respaldo si tenés modificaciones propias pendientes.
 2. Descomprimí el ZIP fuera del repositorio. Copiá **su contenido** a la raíz del proyecto, al mismo nivel que `package.json`, `app.js` y `build.mjs`. Reemplazá los archivos existentes cuando lo solicite el sistema.
 3. Conservá las carpetas `server/` y `tests/`: combiná sus contenidos con las carpetas existentes. No reemplaces ni borres las carpetas completas. No crees una carpeta adicional con el nombre del ZIP dentro del proyecto.
-4. En GitHub Desktop deben aparecer los 11 archivos de la tabla siguiente. Revisá los cambios, hacé **Commit to main** y después **Push origin**.
+4. En GitHub Desktop deben aparecer los tres archivos indicados al comienzo de esta guía. Revisá los cambios, hacé **Commit to main** y después **Push origin**.
 5. Esperá que Vercel termine el despliegue automático y comprobá la colección desde Mi perfil. Si una pestaña estaba abierta, recargala para solicitar el catálogo actualizado.
 
 No necesitás ejecutar SQL, crear tablas, agregar variables de entorno ni modificar la configuración de Vercel o Neon. La preferencia de grupo continúa guardándose con el sistema existente. Este parche no cambia la migración de grupos ya instalada.
 
-## Archivos incluidos
+## Archivos de la incorporación original de clases (referencia)
 
 | Ruta | Cambio |
 | --- | --- |
@@ -59,7 +59,7 @@ Los dos grupos reciben la misma colección 2026 y el mismo orden. Los temas con 
 - **La oración:** mantiene tanto la parábola de la viuda y el juez como el desarrollo del Padre Nuestro.
 - **Ángeles y el hombre:** conserva la distinción entre los textos bíblicos y las conclusiones o límites señalados por la propia presentación. Las alas son una representación simbólica.
 - **Historia de la Iglesia:** se mantiene como clase distinta de la historia de la Asamblea Cristiana. No se inventan pasajes para una presentación que no los cita. El cierre explica esa ausencia.
-- **Historia de la Asamblea Cristiana:** el recorrido se atribuye al documento de Alfredo Borgia de 2024. Conserva el contexto pentecostal, la llegada a la Argentina, Villa Devoto, Mendoza y las generaciones posteriores. Los relatos de experiencias se presentan como testimonios de esa fuente; sus distintas corrientes históricas no se confunden con una única organización.
+- **Historia de la Asamblea Cristiana:** conserva el contexto pentecostal, la llegada a la Argentina, Villa Devoto, Mendoza y las generaciones posteriores. El relato y la cita destacada se muestran sin atribución de autor. Los relatos de experiencias se presentan como testimonios históricos; sus distintas corrientes no se confunden con una única organización.
 
 Las actividades iniciales, diapositivas repetidas y elementos decorativos se omitieron del resumen. Las menciones bíblicas de los ejemplos iniciales sí se conservaron. Los metadatos `sourceFiles` y `references[].sources` permiten identificar las fuentes dentro del archivo protegido.
 

@@ -80,7 +80,7 @@ test('the prayer study includes the Padre Nuestro and the historical study does 
   assert.deepEqual(get('historia-iglesia-personajes').references, []);
   assert.equal(get('historia-iglesia-personajes').anchor.reference, null);
   assert(get('historia-iglesia-personajes').anchor.attribution);
-  assert.match(get('historia-asamblea-cristiana').story, /Alfredo Borgia/);
+  assert.equal(get('historia-asamblea-cristiana').anchor.attribution, undefined);
 });
 
 test('new artwork uses the original atlas format and only the ten new illustration cells', async () => {

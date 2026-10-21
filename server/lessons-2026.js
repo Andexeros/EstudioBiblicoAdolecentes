@@ -3615,7 +3615,7 @@ export const lessonsIntermedioGrande2026 = [
       "orígenes."
     ],
     "description": "Orígenes, desarrollo y memoria comunitaria de la Asamblea Cristiana.",
-    "story": "El documento del anciano Alfredo Borgia recorre el contexto del movimiento pentecostal y la llegada de la Asamblea Cristiana a la Argentina. Relata los acontecimientos de Topeka y Azusa, el ministerio de William H. Durham en Chicago y el encuentro de creyentes italianos con ese movimiento. Desde allí sigue a Louis Francescon, Giacomo Lombardi y Lucía Menna hasta su llegada en 1909. Después describe el trabajo de Narciso Natucci, la comunidad de Villa Devoto y la expansión por distintas provincias, con un lugar especial para los comienzos en Mendoza. Las fechas y los testimonios de esta clase siguen ese relato institucional de 2024.",
+    "story": "Los orígenes de la Asamblea Cristiana en la Argentina se relacionan con el desarrollo del movimiento pentecostal. Los acontecimientos de Topeka y Azusa, el ministerio de William H. Durham en Chicago y el encuentro de creyentes italianos con ese movimiento forman parte de ese contexto. Louis Francescon, Giacomo Lombardi y Lucía Menna llegaron a la Argentina en 1909. Más adelante, el trabajo de Narciso Natucci, la comunidad de Villa Devoto y la expansión por distintas provincias dieron continuidad a la obra, con un lugar especial para los comienzos en Mendoza.",
     "points": [
       {
         "title": "La oración acompaña la misión.",
@@ -3647,8 +3647,7 @@ export const lessonsIntermedioGrande2026 = [
     "application": "Conversá con una persona de tu congregación sobre sus comienzos en la fe y la historia de tu comunidad. Relacioná ese testimonio con las etapas que presenta esta clase.",
     "anchor": {
       "text": "La obra en esos primeros años se extiende desde Devoto a muchas ciudades y provincias de nuestro país, mostrando el sentido de misión que tenía la iglesia.",
-      "reference": null,
-      "attribution": "Alfredo Borgia · Historia de la Asamblea Cristiana, 2024"
+      "reference": null
     },
     "color": "#ebc57d",
     "art": [
