@@ -1,5 +1,5 @@
 import { createGroupExperience } from './groups-ui.js?v=20261021-approval1';
-import { createAdminPanel } from './admin.js?v=20261021-google1';
+import { createAdminPanel } from './admin.js?v=20261021-approval-email1';
 import { normalizeFullName, validFullName, fullNameMessage } from './name-rules.js';
 import { groupLabel } from './groups.js?v=20261020-groups1';
 
@@ -143,6 +143,7 @@ function showApproval(access) {
     ? ['CUENTA BLOQUEADA','Tu acceso está pausado.','Un administrador bloqueó el acceso de tu cuenta. Podés consultar con el equipo de Huellas y volver para comprobar su estado.']
     : ['PENDIENTE DE APROBACIÓN','¡Tu cuenta está casi lista!','Tu correo ya fue verificado. Estamos esperando que un administrador apruebe tu solicitud para que puedas comenzar a explorar los estudios bíblicos.'];
   $('approval-badge').textContent = copy[0]; $('approval-title').textContent = copy[1]; $('approval-description').textContent = copy[2];
+  $('approval-email-note').hidden = state !== 'pending';
   $('approval-group').textContent = currentAccess.groupId ? 'Tu grupo · ' + groupLabel(currentAccess.groupId) : '';
   message('', false, 'approval-message');
   if (wasHidden) $('approval-title').focus({preventScroll:true});

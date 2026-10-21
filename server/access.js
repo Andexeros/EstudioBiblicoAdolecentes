@@ -28,10 +28,14 @@ export async function registeredUsers(offset = 0, group = '', filters = {}) {
     coalesce(m.role,'user') AS role, coalesce(m.version,0) AS version,
     m.deletion_id IS NOT NULL AS "deletionPending",
     (m.name_confirmed_at IS NULL AND EXISTS (SELECT 1 FROM neon_auth."account" ga WHERE ga."userId"::text = u.id::text AND ga."providerId" = 'google')) AS "needsNameConfirmation",
+    notification.status AS "approvalEmailStatus", notification.attempted_at AS "approvalEmailAttemptedAt",
+    notification.sent_at AS "approvalEmailSentAt", notification.error_code AS "approvalEmailError",
     count(*) OVER () AS total
     FROM neon_auth."user" u FULL OUTER JOIN public.huellas_memberships m ON m.user_id = u.id::text
     LEFT JOIN public.huellas_access a ON a.user_id = coalesce(u.id::text,m.user_id)
     LEFT JOIN public.huellas_user_preferences p ON p.user_id = coalesce(u.id::text,m.user_id)
+    LEFT JOIN LATERAL (SELECT status, attempted_at, sent_at, error_code FROM public.huellas_approval_emails
+      WHERE user_id = coalesce(u.id::text,m.user_id) ORDER BY created_at DESC, id DESC LIMIT 1) notification ON true
     WHERE (u.id IS NOT NULL OR m.deletion_id IS NOT NULL)
       AND (${group}::text = '' OR p.study_group = ${group} OR (${group}::text = 'unassigned' AND p.study_group IS NULL))
       AND (${status}::text = '' OR coalesce(m.status,'pending') = ${status})

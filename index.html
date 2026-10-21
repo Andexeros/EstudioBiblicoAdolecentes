@@ -20,11 +20,11 @@
   <link rel="stylesheet" href="identity.css?v=20261019">
   <link rel="stylesheet" href="auth.css?v=20261019-login1">
   <link rel="stylesheet" href="groups.css?v=20261020-groups1">
-  <link rel="stylesheet" href="admin.css?v=20261021-approval1">
+  <link rel="stylesheet" href="admin.css?v=20261021-approval-email1">
   <link rel="stylesheet" href="music.css?v=20261019-music1">
   <link rel="stylesheet" href="legal.css?v=20261021-legal1">
   <script type="module" src="install.js?v=20261019"></script>
-  <script type="module" src="auth.js?v=20261021-google2"></script>
+  <script type="module" src="auth.js?v=20261021-approval-email1"></script>
   <script type="module" src="music.js?v=20261021-music-end1"></script>
 </head>
 <body>
@@ -81,7 +81,7 @@
   </main>
   <main id="approval-screen" class="ha-access" aria-labelledby="approval-title" hidden>
     <a class="auth-brand" href="/" aria-label="Huellas, inicio"><img src="huellas-biblia.svg" width="48" height="48" alt=""><span>huellas<span>ESTUDIOS BÍBLICOS</span></span></a>
-    <section class="ha-access-panel"><img src="huellas-biblia.svg" width="84" height="84" alt=""><p id="approval-badge" class="auth-eyebrow">PENDIENTE DE APROBACIÓN</p><h1 id="approval-title" tabindex="-1">¡Tu cuenta está casi lista!</h1><p id="approval-description">Tu correo ya fue verificado. Estamos esperando que un administrador apruebe tu solicitud para que puedas comenzar a explorar los estudios bíblicos.</p><p id="approval-group" class="ha-access-group"></p><div class="ha-access-actions"><button id="approval-refresh" class="auth-submit" type="button">Consultar estado</button><button id="approval-logout" class="auth-secondary" type="button">Cerrar sesión</button></div><p id="approval-message" class="auth-message" role="status" aria-live="polite"></p></section>
+    <section class="ha-access-panel"><img src="huellas-biblia.svg" width="84" height="84" alt=""><p id="approval-badge" class="auth-eyebrow">PENDIENTE DE APROBACIÓN</p><h1 id="approval-title" tabindex="-1">¡Tu cuenta está casi lista!</h1><p id="approval-description">Tu correo ya fue verificado. Estamos esperando que un administrador apruebe tu solicitud para que puedas comenzar a explorar los estudios bíblicos.</p><p id="approval-email-note" class="ha-email-note">Cuando un administrador apruebe tu cuenta, te avisaremos por correo electrónico.</p><p id="approval-group" class="ha-access-group"></p><div class="ha-access-actions"><button id="approval-refresh" class="auth-submit" type="button">Consultar estado</button><button id="approval-logout" class="auth-secondary" type="button">Cerrar sesión</button></div><p id="approval-message" class="auth-message" role="status" aria-live="polite"></p></section>
   </main>
   <div id="huellas-app" hidden inert>
   <a class="skip-link" href="#lesson-content">Ir al contenido de la clase</a>

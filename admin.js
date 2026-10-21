@@ -2,12 +2,35 @@ import { studyGroups, groupLabel } from './groups.js?v=20261020-groups1';
 
 const statuses={pending:'Pendiente',approved:'Aprobado',rejected:'Rechazado',blocked:'Bloqueado'};
 const roles={owner:'Propietario',admin:'Administrador',user:'Usuario'};
-const actions={approve:'Aprobar cuenta',reject:'Rechazar solicitud',block:'Bloquear cuenta',reactivate:'Reactivar cuenta',set_group:'Cambiar grupo',grant_admin:'Designar administrador',revoke_admin:'Revocar administrador',delete:'Eliminar cuenta permanentemente'};
-const explanations={approve:'La persona podrá acceder a las clases de su grupo.',reject:'La solicitud quedará rechazada y la cuenta no podrá acceder a las clases.',block:'Se revocará el acceso al contenido. La información de la cuenta se conservará para una posible reactivación.',reactivate:'La cuenta volverá a tener acceso a los estudios de su grupo.',set_group:'El grupo se actualizará en Neon y en los próximos accesos de esta persona.',grant_admin:'Esta persona podrá gestionar solicitudes y usuarios ordinarios. No podrá designar administradores ni eliminar cuentas.',revoke_admin:'Se retirarán sus permisos administrativos. Podrá continuar como usuario aprobado.',delete:'Esta acción es irreversible. Se eliminará la identidad en Neon Auth y sus preferencias y accesos de Huellas. El historial administrativo se conserva.'};
+const actions={approve:'Aprobar cuenta',reject:'Rechazar solicitud',block:'Bloquear cuenta',reactivate:'Reactivar cuenta',set_group:'Cambiar grupo',grant_admin:'Designar administrador',revoke_admin:'Revocar administrador',delete:'Eliminar cuenta permanentemente',resend_approval_email:'Reenviar correo'};
+const explanations={approve:'La persona podrá acceder a las clases de su grupo y recibirá un correo de bienvenida. Si el envío falla, la aprobación se conserva.',reject:'La solicitud quedará rechazada y la cuenta no podrá acceder a las clases.',block:'Se revocará el acceso al contenido. La información de la cuenta se conservará para una posible reactivación.',reactivate:'La cuenta volverá a tener acceso a los estudios de su grupo.',set_group:'El grupo se actualizará en Neon y en los próximos accesos de esta persona.',grant_admin:'Esta persona podrá gestionar solicitudes y usuarios ordinarios. No podrá designar administradores ni eliminar cuentas.',revoke_admin:'Se retirarán sus permisos administrativos. Podrá continuar como usuario aprobado.',delete:'Esta acción es irreversible. Se eliminará la identidad en Neon Auth y sus preferencias y accesos de Huellas. El historial administrativo se conserva.',resend_approval_email:'Se enviará nuevamente la bienvenida al correo verificado de esta cuenta. Si el envío anterior quedó sin confirmar, consultá primero si llegó para evitar un duplicado. Esta acción no modifica sus permisos.'};
 const auditLabels={...actions,delete_requested:'Eliminación solicitada',delete_failed:'Eliminación pendiente de confirmar'};
 const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const dates=new Intl.DateTimeFormat('es-AR',{dateStyle:'short',timeStyle:'short',timeZone:'America/Argentina/Buenos_Aires'});
 const date=value=>value&&!Number.isNaN(Date.parse(value))?dates.format(new Date(value)):'Sin acceso registrado';
+function emailStatus(user){
+  if(!user.approvalEmailStatus)return '';
+  const state=user.approvalEmailStatus;
+  const stale=state==='sending'&&Date.now()-Date.parse(user.approvalEmailAttemptedAt)>120000;
+  const label=state==='sent'?'Bienvenida enviada · '+date(user.approvalEmailSentAt)
+    :state==='sending'&&!stale?'Correo en envío…'
+    :state==='uncertain'||stale?'Correo: envío sin confirmar'
+    :state==='failed'?(user.approvalEmailError==='SMTP_NOT_CONFIGURED'?'Correo: falta configurar SMTP':'Correo: envío fallido'):'Correo pendiente de envío';
+  return `<small class="ha-email-status" data-email-state="${escape(stale?'uncertain':state)}">${escape(label)}</small>`;
+}
+function emailResult(result,action){
+  const notification=result.notification;
+  if(!notification)return ['Cambio guardado.',false];
+  if(notification.status==='sent')return [action==='approve'?'Cuenta aprobada y correo de bienvenida enviado.':'Correo de bienvenida reenviado.',false];
+  if(notification.status==='sending')return ['Ya hay un envío en curso. Actualizá el listado en unos instantes.',false];
+  if(notification.status==='cooldown')return ['Esperá 5 minutos desde el último intento antes de reenviar el correo.',true];
+  if(notification.status==='not_applicable')return ['Esta cuenta no tiene una notificación de aprobación para reenviar.',true];
+  if(notification.status==='unchanged')return ['El correo ya fue procesado. Actualizá el listado para consultar su estado.',false];
+  const prefix=action==='approve'?'La cuenta fue aprobada. ':'';
+  if(notification.code==='SMTP_NOT_CONFIGURED')return [prefix+'Falta configurar el SMTP en Vercel. Después podés reenviar el correo desde el listado.',true];
+  if(notification.status==='uncertain')return [prefix+'No pudimos confirmar el envío. Revisá si el correo llegó antes de reenviarlo.',true];
+  return [prefix+'No pudimos enviar el correo. Revisá su estado en el listado para reintentarlo.',true];
+}
 
 export function createAdminPanel({request,errorText,onPermissionChange}) {
   const $=id=>document.getElementById(id), dialog=$('users-dialog'), confirm=$('admin-confirm-dialog');
@@ -26,12 +49,16 @@ export function createAdminPanel({request,errorText,onPermissionChange}) {
       list.push(['set_group',false]);
       if(role==='owner'&&user.role==='user'&&user.status==='approved')list.push(['grant_admin',!user.emailVerified||user.needsNameConfirmation]);
       if(role==='owner'&&user.role==='admin')list.push(['revoke_admin',false]);
+      if(user.status==='approved'&&user.approvalEmailStatus){
+        const cooldown=Date.now()-Date.parse(user.approvalEmailAttemptedAt)<300000&&user.approvalEmailError!=='SMTP_NOT_CONFIGURED';
+        list.push(['resend_approval_email',!user.emailVerified||user.needsNameConfirmation||cooldown]);
+      }
     }
     if(role==='owner')list.push(['delete',!deletionEnabled]);
-    return `<div class="ha-row-actions">${list.map(([action,disabled])=>`<button type="button" data-action="${action}" data-user="${escape(user.id)}" ${disabled||busy?'disabled':''} ${disabled?`title="${action==='delete'?'Falta configurar la API administrativa de Neon':(user.needsNameConfirmation?'Primero debe confirmar su nombre':'Primero debe verificar su correo')}"`:''}>${action==='delete'?(user.deletionPending?'Reintentar eliminación':'Eliminar'):escape(actions[action])}</button>`).join('')}</div>`;
+    return `<div class="ha-row-actions">${list.map(([action,disabled])=>`<button type="button" data-action="${action}" data-user="${escape(user.id)}" ${disabled||busy?'disabled':''} ${disabled?`title="${action==='delete'?'Falta configurar la API administrativa de Neon':(user.needsNameConfirmation?'Primero debe confirmar su nombre':!user.emailVerified?'Primero debe verificar su correo':'Esperá 5 minutos desde el último intento y actualizá el listado')}"`:''}>${action==='delete'?(user.deletionPending?'Reintentar eliminación':'Eliminar'):escape(actions[action])}</button>`).join('')}</div>`;
   }
   function renderUsers(){
-    $('users-rows').innerHTML=users.length?users.map(user=>`<tr><td data-label="Cuenta"><strong>${escape(user.name||'Sin nombre')}</strong><span>${escape(user.email)}</span></td><td data-label="Grupo"><span>${escape(groupLabel(user.study_group))}</span></td><td data-label="Estado"><div><span class="ha-status" data-state="${escape(user.status)}">${escape(statuses[user.status]||'Pendiente')}</span><span>${user.emailVerified?'Correo verificado':'Correo sin verificar'}</span>${user.needsNameConfirmation?'<span>Nombre por confirmar</span>':''}${user.deletionPending?'<span>Eliminación pendiente</span>':''}</div></td><td data-label="Rol"><span>${escape(roles[user.role]||'Usuario')}</span></td><td data-label="Fechas"><div><p>Registro<br>${escape(date(user.createdAt))}</p><p>Último acceso<br>${escape(date(user.last_seen_at))}</p></div></td><td data-label="Acciones">${controlsFor(user)}</td></tr>`).join(''):'<tr><td colspan="6" class="ha-empty-row">No hay cuentas para estos filtros.</td></tr>';
+    $('users-rows').innerHTML=users.length?users.map(user=>`<tr><td data-label="Cuenta"><strong>${escape(user.name||'Sin nombre')}</strong><span>${escape(user.email)}</span></td><td data-label="Grupo"><span>${escape(groupLabel(user.study_group))}</span></td><td data-label="Estado"><div><span class="ha-status" data-state="${escape(user.status)}">${escape(statuses[user.status]||'Pendiente')}</span><span>${user.emailVerified?'Correo verificado':'Correo sin verificar'}</span>${user.needsNameConfirmation?'<span>Nombre por confirmar</span>':''}${user.deletionPending?'<span>Eliminación pendiente</span>':''}${emailStatus(user)}</div></td><td data-label="Rol"><span>${escape(roles[user.role]||'Usuario')}</span></td><td data-label="Fechas"><div><p>Registro<br>${escape(date(user.createdAt))}</p><p>Último acceso<br>${escape(date(user.last_seen_at))}</p></div></td><td data-label="Acciones">${controlsFor(user)}</td></tr>`).join(''):'<tr><td colspan="6" class="ha-empty-row">No hay cuentas para estos filtros.</td></tr>';
   }
   async function loadUsers(nextOffset=0){
     if(!permitted)return;
@@ -98,7 +125,7 @@ export function createAdminPanel({request,errorText,onPermissionChange}) {
     if(action==='set_group')payload.groupId=$('admin-target-group').value;
     if(action==='delete')payload.confirmation=$('admin-delete-confirmation').value.trim();
     busy=true;$('admin-action-form').setAttribute('aria-busy','true');$('admin-confirm-submit').disabled=true;$('admin-cancel').disabled=true;renderUsers();
-    try{await request('/api/admin',payload);confirm.close();await Promise.all([loadUsers(offset),loadOverview()]);note('Cambio guardado.');}
+    try{const result=await request('/api/admin',payload);confirm.close();await Promise.all([loadUsers(offset),loadOverview()]);note(...emailResult(result,action));}
     catch(error){note(errorText(error),true,'admin-confirm-message');if([401,403].includes(error.status))onPermissionChange();if(error.status===409||error.code==='DELETE_INCOMPLETE')loadUsers(offset);}
     finally{busy=false;$('admin-action-form').setAttribute('aria-busy','false');$('admin-confirm-submit').disabled=false;$('admin-cancel').disabled=false;renderUsers();$('users-previous').disabled=offset===0;$('users-next').disabled=!hasMore;}
   });

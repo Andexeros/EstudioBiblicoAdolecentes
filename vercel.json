@@ -3,7 +3,7 @@
   "buildCommand": "npm run build",
   "installCommand": "npm ci --omit=peer",
   "outputDirectory": "dist",
-  "functions": { "api/**/*.js": { "maxDuration": 20 } },
+  "functions": { "api/**/*.js": { "maxDuration": 20, "includeFiles": "huellas-icon-192-v2.png" } },
   "rewrites": [
     { "source": "/privacidad", "destination": "/privacidad/index.html" },
     { "source": "/terminos", "destination": "/terminos/index.html" }

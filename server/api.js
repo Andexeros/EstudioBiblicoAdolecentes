@@ -9,6 +9,7 @@ import { overview, audit, mutate, finishDelete, identityExists } from './admin-d
 import { deletionConfigured, deletionService } from './neon-admin.js';
 import { fullNameMessage, normalizeFullName, validFullName } from '../name-rules.js';
 import { confirmName } from './profile.js';
+import { notifyApproval } from './approval-email.js';
 
 async function context(request, config) {
   const session = await getSession(request, config, true);
@@ -95,7 +96,7 @@ export async function adminEndpoint(request, config) {
   }
   const input = await bodyJSON(request);
   if (Object.keys(input).some(key => !['action','userId','version','groupId','confirmation','confirmed'].includes(key))
-    || !['approve','reject','block','reactivate','set_group','grant_admin','revoke_admin','delete'].includes(input.action)
+    || !['approve','reject','block','reactivate','set_group','grant_admin','revoke_admin','delete','resend_approval_email'].includes(input.action)
     || typeof input.userId !== 'string' || !input.userId || input.userId.length > 200
     || !Number.isInteger(input.version) || input.version < 0 || input.version > 2147483647) throw new HttpError(400,'INVALID_ACTION','Revisá la acción y la cuenta seleccionada.');
   if (input.confirmed !== true) throw new HttpError(400,'CONFIRMATION_REQUIRED','Confirmá la acción antes de continuar.');
@@ -105,6 +106,13 @@ export async function adminEndpoint(request, config) {
   if (input.action !== 'delete' && input.confirmation !== undefined) throw new HttpError(400,'INVALID_ACTION','Revisá los datos de la acción.');
   if (input.action === 'delete' && (typeof input.confirmation !== 'string' || input.confirmation.length > 254)) throw new HttpError(400,'CONFIRMATION_REQUIRED','Escribí el correo de la cuenta.');
   await consumeLimit('admin:'+user.id,60,60,config);
+  if (input.action === 'resend_approval_email') {
+    await consumeLimit('approval-email:actor:'+user.id,10,300,config);
+    await consumeLimit('approval-email:target:'+input.userId,3,900,config);
+    const notification = await notifyApproval(user.id,input.userId,input.version,{manual:true});
+    return withCookies(json({ok:true,notification}),session.cookies);
+  }
+  let notification;
   if (input.action === 'delete') {
     const remove = await deletionService(config);
     const result = await mutate(user.id,input.userId,'delete_prepare',input.version,null,input.confirmation.trim());
@@ -113,6 +121,14 @@ export async function adminEndpoint(request, config) {
       if (await identityExists(input.userId)) throw new HttpError(503,'DELETE_INCOMPLETE','La identidad todavía figura en Neon. La cuenta sigue bloqueada; revisá el estado antes de reintentar.');
     } catch (error) { await finishDelete(user.id,input.userId,result.operationId,false).catch(() => {}); throw error; }
     await finishDelete(user.id,input.userId,result.operationId,true);
-  } else await mutate(user.id,input.userId,input.action,input.version,input.groupId || null);
-  return withCookies(json({ok:true}),session.cookies);
+  } else {
+    const result = await mutate(user.id,input.userId,input.action,input.version,input.groupId || null);
+    if (input.action === 'approve') {
+      // Approval has committed. Email problems must never undo it or invite a
+      // second approval attempt. The durable notification supports manual retry.
+      try { notification = await notifyApproval(user.id,input.userId,result.version); }
+      catch { console.error('Huellas approval email: NOTIFICATION_UNAVAILABLE'); notification = {status:'unavailable'}; }
+    }
+  }
+  return withCookies(json({ok:true,...(notification ? {notification} : {})}),session.cookies);
 }
