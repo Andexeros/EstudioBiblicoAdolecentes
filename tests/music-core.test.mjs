@@ -7,16 +7,22 @@ function seeded(seed) { return () => { seed = (seed * 1664525 + 1013904223) >>> 
 const delay = () => new Promise(resolve => setImmediate(resolve));
 const songs = Array.from({ length: 4 }, (_, i) => ({ id: 'song-' + i, title: 'Canción ' + i, src: 'audio/song-' + i + '.mp3', duration: 120 }));
 class FakeAudio extends EventTarget {
-  constructor() { super(); this.paused = true; this.currentTime = 0; this.duration = NaN; this.currentSrc = ''; this.sources = []; this.starts = 0; this.loads = 0; this._volume = 1; }
-  set src(value) { this.currentSrc = value; this.sources.push(value); this.currentTime = 0; this.duration = NaN; }
+  constructor() { super(); this.paused = true; this.ended = false; this.currentTime = 0; this.duration = NaN; this.currentSrc = ''; this.sources = []; this.starts = 0; this.loads = 0; this._volume = 1; }
+  set src(value) { this.currentSrc = value; this.sources.push(value); this.currentTime = 0; this.duration = NaN; this.ended = false; }
   get src() { return this.currentSrc; }
   set volume(value) { this._volume = value; }
   get volume() { return this._volume; }
   play() { this.starts++; if (this.behavior) return this.behavior(this); return this.succeed(); }
-  succeed() { this.paused = false; this.duration = 120; this.dispatchEvent(new Event('loadedmetadata')); this.dispatchEvent(new Event('playing')); return Promise.resolve(); }
+  succeed() { this.paused = false; this.ended = false; this.duration = 120; this.dispatchEvent(new Event('loadedmetadata')); this.dispatchEvent(new Event('playing')); return Promise.resolve(); }
   pause() { const changed = !this.paused; this.paused = true; if (changed) this.dispatchEvent(new Event('pause')); }
+  finish() {
+    this.currentTime = this.duration; this.ended = true;
+    this.dispatchEvent(new Event('timeupdate'));
+    this.pause();
+    this.dispatchEvent(new Event('ended'));
+  }
   removeAttribute(name) { if (name === 'src') this.currentSrc = ''; }
-  load() { this.loads++; this.duration = NaN; this.currentTime = 0; }
+  load() { this.loads++; this.duration = NaN; this.currentTime = 0; this.ended = false; }
 }
 function setup(t, tracks = songs, options = {}) {
   const audio = new FakeAudio(), saved = [];
@@ -141,8 +147,53 @@ test('a late ended event after pause does not start another song', async t => {
 });
 test('the end of a song advances automatically through the shuffle queue', async t => {
   const { engine, audio } = setup(t); await engine.play(); const first = engine.track.id;
-  audio.dispatchEvent(new Event('ended')); await delay();
+  audio.finish(); await delay();
   assert.notEqual(engine.track.id, first); assert.equal(engine.state.playing, true);
+});
+test('natural endings continue across shuffle cycles without repeating or duplicating playback', async t => {
+  const { engine, audio } = setup(t); await engine.play();
+  let last = null, starts = 1;
+  for (let cycle = 0; cycle < 3; cycle++) {
+    const round = [];
+    for (let i = 0; i < songs.length; i++) {
+      const current = engine.track.id;
+      assert.notEqual(current, last); round.push(current); last = current;
+      audio.finish(); await delay();
+      assert.equal(engine.audio, audio); assert.equal(audio.starts, ++starts);
+      assert.equal(engine.state.playing, true); assert.equal(engine.state.intent, true);
+      assert.equal(audio.currentTime, 0);
+    }
+    assert.deepEqual([...round].sort(), songs.map(song => song.id).sort());
+  }
+});
+test('a native pause still cancels playback intent and prevents a late ending from advancing', async t => {
+  const { engine, audio } = setup(t); await engine.play(); const id = engine.track.id;
+  audio.pause(); audio.finish(); await delay();
+  assert.equal(engine.track.id, id); assert.equal(audio.starts, 1);
+  assert.equal(engine.state.intent, false); assert.equal(engine.state.playing, false);
+});
+for (const action of ['pause', 'mute']) test(`${action} at the end of a song prevents automatic continuation`, async t => {
+  const { engine, audio } = setup(t); await engine.play(); const id = engine.track.id;
+  audio.addEventListener('timeupdate', () => engine[action](), { once: true });
+  audio.finish(); await delay();
+  assert.equal(engine.track.id, id); assert.equal(audio.starts, 1);
+  assert.equal(engine.state.intent, false); assert.equal(engine.state.playing, false);
+});
+test('a queued pause from an earlier track cannot stop the track now playing', async t => {
+  const { engine, audio } = setup(t); await engine.play();
+  engine.next(); await delay(); const id = engine.track.id;
+  audio.dispatchEvent(new Event('pause'));
+  assert.equal(engine.state.intent, true); assert.equal(engine.state.playing, true);
+  audio.finish(); await delay();
+  assert.notEqual(engine.track.id, id); assert.equal(audio.starts, 3);
+});
+test('a blocked continuation offers play instead of looping through songs', async t => {
+  const { engine, audio } = setup(t); await engine.play(); const id = engine.track.id;
+  audio.behavior = () => Promise.reject(Object.assign(new Error('blocked'), { name: 'NotAllowedError' }));
+  audio.finish(); await delay();
+  assert.notEqual(engine.track.id, id); assert.equal(audio.starts, 2);
+  assert.equal(engine.state.blocked, true); assert.equal(engine.state.playing, false);
+  assert.equal(engine.state.intent, false); assert.match(engine.state.message, /Reproducir/);
 });
 test('a broken audio file is skipped once and another track can play', async t => {
   const { engine, audio } = setup(t); const bad = engine.track.id;
@@ -167,7 +218,7 @@ test('malformed source URLs are omitted without breaking the playable collection
 });
 test('an empty playlist remains usable and a single track can repeat safely', async t => {
   const empty = setup(t, []); assert.equal(await empty.engine.play(), false); assert.equal(empty.audio.starts, 0);
-  const one = setup(t, songs.slice(0, 1)); await one.engine.play(); one.audio.dispatchEvent(new Event('ended')); await delay();
+  const one = setup(t, songs.slice(0, 1)); await one.engine.play(); one.audio.finish(); await delay();
   assert.equal(one.engine.track.id, songs[0].id); assert.equal(one.audio.starts, 2);
 });
 test('seeking is disabled before metadata and clamps to the real duration afterwards', async t => {

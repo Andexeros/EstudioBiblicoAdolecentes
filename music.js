@@ -1,5 +1,5 @@
 import { musicPlaylist } from './music-playlist.js?v=20261019-music1';
-import { MusicEngine, readMusicSettings, writeMusicSettings, playerBounds, clampPosition, restorePosition, rememberPosition, panelPosition } from './music-core.js?v=20261019-music1';
+import { MusicEngine, readMusicSettings, writeMusicSettings, playerBounds, clampPosition, restorePosition, rememberPosition, panelPosition } from './music-core.js?v=20261021-music-end1';
 
 const icons = {
   speaker: '<path d="m11 5-6 4H2v6h3l6 4V5Z"/><path d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/>',

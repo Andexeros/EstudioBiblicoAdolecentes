@@ -123,7 +123,13 @@ export class MusicEngine extends EventTarget {
       this.playing = true; this.loading = false; this.blocked = false; this.message = ''; this.clearTimer();
       this.remember({ lastTrack: this.track.id }); this.changed();
     });
-    this.listen('pause', () => { this.playing = false; if (!this.loading) this.intent = false; this.changed(); });
+    this.listen('pause', () => {
+      if (!audio.paused) return;
+      this.playing = false;
+      // Native playback emits pause before ended; preserve the intent to advance.
+      if (!this.loading && !audio.ended) this.intent = false;
+      this.changed();
+    });
     this.listen('waiting', () => {
       if (this.intent) {
         this.loading = true; this.clearTimer();
