@@ -43,3 +43,33 @@ test('the collection still has 15 classes, all 161 references and the unchanged 
   assert.equal(manifest.short_name, 'Huellas');
   for (const icon of manifest.icons) await stat(new URL('dist/' + icon.src, root));
 });
+
+test('legal pages are public HTML without authentication, application scripts or provider requests', async t => {
+  const fetch = t.mock.method(globalThis, 'fetch', () => { throw new Error('Public documents must not contact an authentication or database service'); });
+  const handler = createLocalHandler();
+  async function invoke(url, method = 'GET') {
+    let body; const headers = {};
+    const res = { writeHead(status, values = {}) { this.statusCode = status; Object.assign(headers, values); }, end(value) { body = value; } };
+    await handler({ method, url, headers: {} }, res);
+    return { status: res.statusCode, headers, body };
+  }
+  for (const [path, title] of [['/privacidad', 'Política de Privacidad'], ['/terminos', 'Términos y Condiciones de Uso']]) {
+    for (const suffix of ['', '/', '/index.html']) {
+      const page = await invoke(path + suffix);
+      assert.equal(page.status, 200, path + suffix);
+      assert.match(page.headers['Content-Type'], /text\/html/);
+      assert(!Object.keys(page.headers).some(name => name.toLowerCase() === 'set-cookie'));
+      const html = page.body.toString();
+      assert(html.includes(`<h1>${title}</h1>`));
+      assert(!/<script\b|\/api\/|id="huellas-app"/.test(html));
+      for (const match of html.matchAll(/(?:src|href)="(\/[^"#?]*)(?:\?[^"#]*)?"/g)) {
+        assert.equal((await invoke(match[1])).status, 200, `${path}: ${match[1]}`);
+      }
+      for (const match of html.matchAll(/href="#([^"]+)"/g)) assert(html.includes(`id="${match[1]}"`), match[1]);
+    }
+    const head = await invoke(path, 'HEAD');
+    assert.equal(head.status, 200);
+    assert.equal(head.body, undefined);
+  }
+  assert.equal(fetch.mock.callCount(), 0);
+});
