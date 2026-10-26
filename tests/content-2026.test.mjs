@@ -7,7 +7,7 @@ import { studyLessons, studyForGroup, studyAssignments, studyCollections } from 
 
 const ids = ['santa-cena', 'defendiendo-mi-fe', 'amigo-de-jesus', 'naaman-logica-de-dios',
   'sala-de-espera-de-dios', 'evangelios-cuatro-miradas', 'fariseos-corazon', 'baal-vive',
-  'oracion-perseverante', 'angeles-y-el-hombre', 'historia-iglesia-personajes', 'historia-asamblea-cristiana'];
+  'oracion-perseverante', 'angeles-y-el-hombre', 'historia-iglesia-personajes', 'historia-asamblea-cristiana', 'santa-cena-octubre'];
 const get = id => added.find(lesson => lesson.id === id);
 
 test('both new collections share the same objects in the approved order without duplicating content', () => {
@@ -19,11 +19,12 @@ test('both new collections share the same objects in the approved order without 
     assert.equal(intermedio.lessons[i], grande.lessons[i]);
     assert.equal(grande.lessons[i], added[i]);
   }
-  assert.equal(new Set(studyLessons.map(lesson => lesson.id)).size, 27);
+  assert.equal(new Set(studyLessons.map(lesson => lesson.id)).size, 28);
   const adolescentes = studyForGroup('adolescentes').lessons;
   assert.deepEqual(adolescentes.slice(0, lessons.length), lessons);
-  assert.deepEqual(adolescentes.slice(lessons.length), [get('santa-cena')]);
-  assert.equal(adolescentes.at(-1), intermedio.lessons[0]);
+  assert.deepEqual(adolescentes.slice(lessons.length), [get('santa-cena'), get('santa-cena-octubre')]);
+  assert.equal(adolescentes[lessons.length], intermedio.lessons[0]);
+  assert.equal(adolescentes.at(-1), intermedio.lessons.at(-1));
   assert(lessons.every(lesson => !ids.includes(lesson.id)));
 });
 
@@ -45,19 +46,51 @@ test('every added study fits the existing renderer, has source provenance and co
       for (const part of ref.split(';').map(text => text.trim())) assert(referenceSet.has(part), `${lesson.id}: missing ${part}`);
     }
   }
-  assert.equal(sourceFiles.size, 14, 'all supplied presentations are represented');
+  assert.equal(sourceFiles.size, 15, 'the fourteen earlier sources and the new October presentation are represented');
 });
 
-test('the two Santa Cena and two Defendiendo mi fe sources are consolidated without changing the earlier studies', () => {
+test('the earlier Santa Cena and Defendiendo mi fe sources remain consolidated, with October as a separate study', () => {
   assert.equal(get('santa-cena').sourceFiles.length, 2);
   assert.equal(get('defendiendo-mi-fe').sourceFiles.length, 2);
-  assert.equal(added.filter(lesson => /santa-cena/.test(lesson.id)).length, 1);
+  assert.deepEqual(added.filter(lesson => /santa-cena/.test(lesson.id)).map(lesson => lesson.id), ['santa-cena', 'santa-cena-octubre']);
   assert.equal(added.filter(lesson => /defendiendo/.test(lesson.id)).length, 1);
   assert(get('santa-cena').references.some(ref => ref.label === 'Colosenses 1:13–14'));
   assert(get('defendiendo-mi-fe').references.some(ref => ref.label === '2 Timoteo 2:24–25'));
   const original = lessons.find(lesson => lesson.id === 'defender-la-fe');
   assert(studyForGroup('adolescentes').lessons.includes(original));
   assert.deepEqual(get('defendiendo-mi-fe').art, original.art);
+});
+
+test('April keeps its route and October shares its artwork as a distinct study in all three groups', () => {
+  const april = get('santa-cena'), october = get('santa-cena-octubre');
+  assert.equal(april.name, 'La Santa Cena (abril)');
+  assert.equal(october.name, 'La Santa Cena (octubre)');
+  assert.notEqual(april.id, october.id);
+  assert.deepEqual(october.art, april.art);
+  assert.equal(october.color, april.color);
+  assert.equal(october.symbol, april.symbol);
+  for (const group of ['adolescentes', 'intermedio', 'grande']) {
+    const collection = studyForGroup(group).lessons;
+    assert.equal(collection.find(lesson => lesson.id === 'santa-cena'), april);
+    assert.equal(collection.at(-1), october);
+    assert.equal(collection.filter(lesson => lesson.id === october.id).length, 1);
+  }
+});
+
+test('October preserves all five passages, the last-supper story and the discernment-to-hope structure of its source', () => {
+  const october = get('santa-cena-octubre');
+  assert.deepEqual(october.references.map(ref => ref.label), [
+    '1 Tesalonicenses 5:21–22', 'Efesios 5:11', 'Lucas 22:19–20', '1 Corintios 11:26', 'Juan 11:25–26',
+  ]);
+  assert.deepEqual(october.sourceFiles, ['POWER POINT LA SANTA CENA 22-10-2026.pptx_20261026_140723_0000.pdf']);
+  for (const ref of october.references) assert.deepEqual(ref.sources, october.sourceFiles);
+  assert.match(october.story, /Jesús/); assert.match(october.story, /pan/); assert.match(october.story, /copa/);
+  assert.match(october.story, /Halloween/); assert.match(october.conclusion, /resurrección/); assert.match(october.conclusion, /regreso/);
+  assert.equal(october.points.length, 6); assert.equal(october.timeline.length, 3);
+  assert.equal(october.extra.length, 1); assert.equal(october.extra[0].items.length, 3);
+  assert.match(october.application, /examinarme antes de participar/);
+  const passages = new Set(october.references.map(ref => ref.label));
+  for (const event of october.timeline) for (const ref of event.ref.split(';').map(text => text.trim())) assert(passages.has(ref), ref);
 });
 
 test('the expanded waiting-room class includes Jacob and reuses the original illustration without replacing the adolescent lesson', () => {

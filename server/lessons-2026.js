@@ -1,10 +1,10 @@
-// Contenido adaptado de las 14 presentaciones recibidas para Intermedio y Grande.
+// Contenido adaptado de las presentaciones recibidas para la colección 2026.
 // Datos protegidos: se entregan únicamente desde los endpoints autenticados.
 // Las clases se comparten entre grupos mediante studies.js, sin duplicar su contenido.
 export const lessonsIntermedioGrande2026 = [
   {
     "id": "santa-cena",
-    "name": "La Santa Cena",
+    "name": "La Santa Cena (abril)",
     "category": "Sacrificio y comunión",
     "headline": [
       "Recordar su entrega,",
@@ -3778,5 +3778,146 @@ export const lessonsIntermedioGrande2026 = [
       "HISTORIA ASAMBLEA CRISTIANA(1).pdf"
     ],
     "minutes": 3
+  },
+  {
+    "id": "santa-cena-octubre",
+    "name": "La Santa Cena (octubre)",
+    "category": "Discernimiento y esperanza",
+    "headline": [
+      "Recordamos su entrega.",
+      "Celebramos la vida."
+    ],
+    "description": "Qué celebramos y por qué: discernir los mensajes de las celebraciones, recordar la entrega de Jesús y esperar su regreso.",
+    "story": "Antes de ser entregado, Jesús se reunió a la mesa con sus discípulos. Tomó el pan, dio gracias, lo partió y lo compartió como memoria de su cuerpo entregado por ellos. Después tomó la copa y habló del nuevo pacto en su sangre. Esos elementos sencillos dirigían la mirada a su amor y a su sacrificio. La clase de octubre parte del contraste con Halloween para preguntarnos qué celebramos y qué mensaje comunican nuestras decisiones. La Santa Cena nos lleva a recordar a Cristo, confiar en su victoria sobre la muerte y esperar su regreso.",
+    "points": [
+      {
+        "title": "Examinar antes de normalizar.",
+        "text": "Antes de participar de una práctica, preguntémonos qué significa, si concuerda con la Palabra y qué comunica nuestra decisión. Discernir es revisar honestamente lo que elegimos, sin condenar a las personas.",
+        "ref": "1 Tesalonicenses 5:21–22"
+      },
+      {
+        "title": "Reconocer el mensaje de una celebración.",
+        "text": "La presentación contrasta el miedo, la muerte y la simbología ocultista asociados a Halloween con el amor y la esperanza que recordamos en la Santa Cena. Nos invita a examinar esas prácticas a la luz de nuestras convicciones cristianas.",
+        "ref": "Efesios 5:11"
+      },
+      {
+        "title": "Pan y copa: sencillos, pero llenos de sentido.",
+        "text": "El valor de la Santa Cena está en aquello que Jesús nos enseñó a recordar. El pan nos dirige a su cuerpo entregado; la copa, al nuevo pacto en su sangre. Algo sencillo puede tener un significado profundo.",
+        "ref": "Lucas 22:19–20"
+      },
+      {
+        "title": "Memoria, amor y nuevo pacto.",
+        "text": "Recordamos que Jesús entregó su vida por nosotros, agradecemos su amor personal y sacrificial, y confiamos en su obra de salvación. Participar requiere comprender a quién estamos recordando y darle la importancia que merece.",
+        "ref": "Lucas 22:19–20"
+      },
+      {
+        "title": "Recordamos, confiamos y esperamos.",
+        "text": "La Santa Cena mira en tres direcciones: al pasado, para recordar su sacrificio; al presente, para confiar en Jesús resucitado; y al futuro, para esperar su regreso. Anunciamos su muerte hasta que Él venga.",
+        "ref": "1 Corintios 11:26"
+      },
+      {
+        "title": "Nuestra esperanza está en Cristo.",
+        "text": "Jesús se presenta como la resurrección y la vida. Su victoria sobre la muerte llena de esperanza nuestra memoria: nuestra fe descansa en Él y en su promesa de vida eterna.",
+        "ref": "Juan 11:25–26"
+      }
+    ],
+    "conclusion": "El pan y la copa tienen tanto valor porque nos dirigen a Jesús y a lo que hizo por nosotros. Recordamos su entrega con gratitud, confiamos en su resurrección y esperamos su regreso. Ese significado nos llama a discernir lo que celebramos y a participar de la Santa Cena con conciencia, sin reducirla a una costumbre.",
+    "application": "Antes de participar, leé Lucas 22:19–20 y preguntate: ¿qué hizo Jesús por mí?, ¿qué lugar ocupa la Santa Cena en mi fe?, ¿cómo puedo examinarme antes de participar? Revisá también tus decisiones a la luz de 1 Tesalonicenses 5:21–22: recordá con gratitud, discerní con sabiduría y esperá con fe.",
+    "anchor": {
+      "reference": "1 Corintios 11:26",
+      "text": "La muerte del Señor anunciáis hasta que él venga."
+    },
+    "color": "#edc77c",
+    "art": [
+      "d",
+      0
+    ],
+    "symbol": "copa y pan de cristal",
+    "artWord": "ESPERANZA",
+    "artCaption": "Recordamos su entrega. Esperamos su regreso.",
+    "summary": "Qué celebramos y por qué lo celebramos.",
+    "storyTitle": "Jesús comparte la última cena.",
+    "timeline": [
+      {
+        "title": "El pan: su entrega",
+        "text": "Jesús dio gracias, partió el pan y lo compartió con sus discípulos. Les pidió que lo hicieran en memoria de Él.",
+        "ref": "Lucas 22:19–20"
+      },
+      {
+        "title": "La copa: el nuevo pacto",
+        "text": "Después de cenar, señaló la copa como el nuevo pacto en su sangre, derramada por ellos. La mesa nos dirige a su amor y a su sacrificio.",
+        "ref": "Lucas 22:19–20"
+      },
+      {
+        "title": "La esperanza: hasta que Él venga",
+        "text": "El recuerdo de su muerte se une a la fe en Jesús resucitado y a la esperanza de su regreso. Su promesa de vida nos invita a confiar en Él.",
+        "ref": "1 Corintios 11:26; Juan 11:25–26"
+      }
+    ],
+    "extraTitle": "El contraste que propone la clase",
+    "extra": [
+      {
+        "title": "Dos celebraciones, dos centros diferentes",
+        "items": [
+          {
+            "title": "Qué estamos normalizando",
+            "text": "Al comparar con Halloween, la clase invita a revisar la familiarización con la hechicería, el espiritismo, la adivinación y la cultura del miedo. La pregunta es qué mensaje aceptamos y si coincide con la Palabra de Dios.",
+            "ref": "Efesios 5:11"
+          },
+          {
+            "title": "Qué estamos recordando",
+            "text": "La Santa Cena pone en el centro el amor y la entrega de Jesús mediante el pan y la copa. Su sencillez nos ayuda a mirar lo esencial y a comprender su significado, en lugar de participar por costumbre.",
+            "ref": "Lucas 22:19–20"
+          },
+          {
+            "title": "Qué estamos esperando",
+            "text": "Nuestra mirada se dirige a la victoria de Cristo sobre la muerte y a su regreso. Recordar su sacrificio va unido a confiar en su promesa de resurrección y vida eterna.",
+            "ref": "Juan 11:25–26"
+          }
+        ]
+      }
+    ],
+    "conclusionTitle": "Recordar con gratitud. Esperar con fe.",
+    "references": [
+      {
+        "label": "1 Tesalonicenses 5:21–22",
+        "topic": "Examinarlo todo, retener lo bueno y apartarnos del mal",
+        "sources": [
+          "POWER POINT LA SANTA CENA 22-10-2026.pptx_20261026_140723_0000.pdf"
+        ]
+      },
+      {
+        "label": "Efesios 5:11",
+        "topic": "Discernir nuestras prácticas a la luz de la Palabra",
+        "sources": [
+          "POWER POINT LA SANTA CENA 22-10-2026.pptx_20261026_140723_0000.pdf"
+        ]
+      },
+      {
+        "label": "Lucas 22:19–20",
+        "topic": "El pan, la copa y el nuevo pacto en la última cena",
+        "sources": [
+          "POWER POINT LA SANTA CENA 22-10-2026.pptx_20261026_140723_0000.pdf"
+        ]
+      },
+      {
+        "label": "1 Corintios 11:26",
+        "topic": "Anunciar la muerte del Señor hasta que Él venga",
+        "sources": [
+          "POWER POINT LA SANTA CENA 22-10-2026.pptx_20261026_140723_0000.pdf"
+        ]
+      },
+      {
+        "label": "Juan 11:25–26",
+        "topic": "Jesús, la resurrección y la vida; la esperanza de vida eterna",
+        "sources": [
+          "POWER POINT LA SANTA CENA 22-10-2026.pptx_20261026_140723_0000.pdf"
+        ]
+      }
+    ],
+    "sourceFiles": [
+      "POWER POINT LA SANTA CENA 22-10-2026.pptx_20261026_140723_0000.pdf"
+    ],
+    "minutes": 4
   }
 ];

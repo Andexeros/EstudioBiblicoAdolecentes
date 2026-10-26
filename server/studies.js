@@ -14,6 +14,7 @@ export const studyAssignments = [
   ].map((lessonId, index) => ({ lessonId, groupIds: ['adolescentes'], collectionId: '2026', order: index + 1, published: true })),
   ...lessonsIntermedioGrande2026.map((lesson, index) => ({ lessonId: lesson.id, groupIds: ['intermedio', 'grande'], collectionId: '2026', order: index + 1, published: true })),
   { lessonId: 'santa-cena', groupIds: ['adolescentes'], collectionId: '2026', order: lessons.length + 1, published: true },
+  { lessonId: 'santa-cena-octubre', groupIds: ['adolescentes'], collectionId: '2026', order: lessons.length + 2, published: true },
   // Add future assignment objects here; groupIds may contain several groups.
 ];
 
