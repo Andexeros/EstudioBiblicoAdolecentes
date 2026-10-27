@@ -41,7 +41,7 @@ h1 .accent-text{color:var(--accent)}
 .primary-button svg{width:19px;height:19px}
 .art-stage{position:relative;width:100%;height:min(560px,65svh);min-height:370px;isolation:isolate;display:flex;align-items:center;justify-content:center;overflow:visible;perspective:1000px}
 .art-halo{position:absolute;width:80%;aspect-ratio:1;background:radial-gradient(ellipse,rgba(var(--accent-rgb),.09),transparent 68%);opacity:.65;z-index:-2;transition:background .8s}
-.art-word{position:absolute;top:9%;left:50%;transform:translateX(-50%);width:max-content;font-family:var(--display);font-weight:600;font-size:clamp(80px,10.5vw,170px);line-height:1;color:transparent;-webkit-text-stroke:1px rgba(var(--accent-rgb),.13);letter-spacing:-3px;z-index:-1;user-select:none;max-width:115%;white-space:nowrap}
+.art-word{position:absolute;top:9%;left:50%;transform:translateX(-50%);width:max-content;font-family:var(--display);font-weight:600;font-size:clamp(80px,10.5vw,170px);line-height:1;color:transparent;-webkit-text-stroke:1px rgba(var(--accent-rgb),.13);letter-spacing:-3px;z-index:-1;user-select:none;max-width:100%;padding-inline:2px;overflow-x:hidden;overflow-x:clip;overflow-y:visible;white-space:nowrap}
 #art-canvas{width:100%;height:100%;display:block;outline:none;touch-action:pan-y}
 .art-caption{position:absolute;bottom:3%;width:100%;display:flex;align-items:center;justify-content:center;gap:15px;color:var(--accent);font-size:12px;letter-spacing:.8px;pointer-events:none}
 .art-rule{height:1px;background:var(--accent);opacity:.35;width:34px}
