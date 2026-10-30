@@ -10,6 +10,7 @@ import { deletionConfigured, deletionService } from './neon-admin.js';
 import { fullNameMessage, normalizeFullName, validFullName } from '../name-rules.js';
 import { confirmName } from './profile.js';
 import { notifyApproval } from './approval-email.js';
+import { notifyPendingRequest } from './pending-request-email.js';
 
 async function context(request, config) {
   const session = await getSession(request, config, true);
@@ -27,6 +28,7 @@ export async function sessionEndpoint(request, config) {
     await bodyJSON(request); requireUser(session);
     if (!['pending','approved'].includes(member.status) || member.deletion_id) requireApproved(member);
     await recordAccess(session.user.id);
+    await notifyPendingRequest(session.user, member);
   }
   return withCookies(json({ user: session.user ? publicUser({ ...session.user, name:member?.full_name || session.user.name }) : null,
     access: member ? publicAccess(member) : null,
@@ -56,6 +58,7 @@ export async function preferencesEndpoint(request, config) {
     groupId = await saveUserGroup(user.id,input.groupId);
     member = await membership(user.id,false);
     if (!member) throw new HttpError(401,'ACCOUNT_UNAVAILABLE','Volvé a ingresar.');
+    await notifyPendingRequest(user, member);
   }
   const access = publicAccess(member);
   return withCookies(json({ groupId, access, study: member.status === 'approved' && !member.deletion_id && groupId ? studyForGroup(groupId) : null }),session.cookies);

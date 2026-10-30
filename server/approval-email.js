@@ -20,14 +20,16 @@ export function smtpConfiguration(env = process.env) {
     from: { name: 'Huellas — Estudios Bíblicos', address: from } };
 }
 
-export async function sendApprovalSMTP(notification) {
+// Both notification types share the working SMTP configuration and delivery
+// deadline. This helper is server-only; recipients never come from a form.
+export async function sendHuellasSMTP(notification, template, kind = 'approval') {
   const options = smtpConfiguration();
   if (!validAddress(notification.email)) throw failure('SMTP_INVALID_RECIPIENT');
   const logo = await readFile(new URL('../huellas-icon-192-v2.png', import.meta.url));
   const transport = nodemailer.createTransport(options);
-  const message = { ...approvalEmailTemplate(notification), from: options.from,
+  const message = { ...template, from: options.from,
     to: { address: notification.email },
-    messageId: `<huellas-approval.${notification.id}.${notification.attemptId}@${options.from.address.split('@')[1]}>`,
+    messageId: `<huellas-${kind}.${notification.id}.${notification.attemptId}@${options.from.address.split('@')[1]}>`,
     attachments: [{ filename: 'huellas-biblia.png', content: logo, contentType: 'image/png', cid: LOGO_CID, contentDisposition: 'inline' }] };
   let timer;
   try {
@@ -38,7 +40,11 @@ export async function sendApprovalSMTP(notification) {
   } finally { clearTimeout(timer); transport.close(); }
 }
 
-function deliveryFailure(error) {
+export function sendApprovalSMTP(notification) {
+  return sendHuellasSMTP(notification, approvalEmailTemplate(notification));
+}
+
+export function deliveryFailure(error) {
   if (error?.code === 'SMTP_NOT_CONFIGURED') return { status: 'failed', code: 'SMTP_NOT_CONFIGURED' };
   if (error?.code === 'EAUTH') return { status: 'failed', code: 'SMTP_AUTH_FAILED' };
   if (['EENVELOPE','EMESSAGE','SMTP_INVALID_RECIPIENT','SMTP_REJECTED'].includes(error?.code)

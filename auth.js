@@ -1,5 +1,5 @@
 import { createGroupExperience } from './groups-ui.js?v=20261021-approval1';
-import { createAdminPanel } from './admin.js?v=20261021-welcome-existing1';
+import { createAdminPanel } from './admin.js?v=20261030-pending-request1';
 import { normalizeFullName, validFullName, fullNameMessage } from './name-rules.js';
 import { groupLabel } from './groups.js?v=20261020-groups1';
 
@@ -201,7 +201,7 @@ async function openApplication(session, record = true) {
   $('profile-welcome').hidden=true;
   message('Comprobando el acceso a Huellas…');
   if (record) await request('/api/session', {});
-  try { await groupExperience.open(session); mounted = true; }
+  try { await groupExperience.open(session); mounted = true; adminPanel.openRequestedView(); }
   catch (error) { application.hidden = true; application.inert = true; screen.hidden = false; throw error; }
   document.title = 'Huellas · Estudios Bíblicos'; armMonitor(); return true;
 }

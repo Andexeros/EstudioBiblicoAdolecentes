@@ -36,6 +36,9 @@ function emailResult(result,action){
 export function createAdminPanel({request,errorText,onPermissionChange}) {
   const $=id=>document.getElementById(id), dialog=$('users-dialog'), confirm=$('admin-confirm-dialog');
   let role='user',permitted=false,users=[],offset=0,hasMore=false,ticket=0,overviewTicket=0,auditTicket=0,auditBefore=null,selection=null,busy=false,searchTimer,deletionEnabled=false;
+  // The ordinary local hash survives the existing email/Google login callback.
+  // This is only a navigation hint; permission still comes from the server.
+  let reviewRequested=location.hash==='#solicitudes-pendientes';
   const note=(text='',error=false,id='users-message')=>{$(id).textContent=text;$(id).dataset.error=String(error);};
   for(const group of studyGroups){const option=document.createElement('option');option.value=group.id;option.textContent=group.name;$('admin-target-group').append(option);}
   function pressed(view){for(const[id,key]of [['admin-pending','pending'],['admin-all','all'],['admin-audit','audit']])$(id).setAttribute('aria-pressed',String(key===view));}
@@ -109,6 +112,11 @@ export function createAdminPanel({request,errorText,onPermissionChange}) {
     $('users-status-filter').value=pending?'pending':'';pressed(pending?'pending':'all');
     $('admin-list-title').textContent=pending?'Solicitudes pendientes':'Usuarios de Huellas';loadUsers(0);
   }
+  function openPendingRequests(){
+    if(!permitted)return false;
+    $('account-dialog').close();if(!dialog.open)dialog.showModal();
+    listView(true);loadOverview();return true;
+  }
   function begin(user,action,button){
     if(busy||!permitted)return;selection={user,action,button};note('',false,'admin-confirm-message');
     $('admin-confirm-title').textContent=actions[action];$('admin-confirm-description').textContent=action==='reactivate'&&user.needsNameConfirmation?'La cuenta volverá a estar pendiente para que confirme su nombre de Google y un administrador pueda revisar su solicitud.':explanations[action];
@@ -143,13 +151,23 @@ export function createAdminPanel({request,errorText,onPermissionChange}) {
   $('admin-audit').addEventListener('click',()=>{if(role!=='owner')return;pressed('audit');$('admin-list-section').hidden=true;$('admin-audit-section').hidden=false;loadAudit();});
   $('admin-audit-more').addEventListener('click',()=>loadAudit(true));
   $('admin-refresh').addEventListener('click',()=>{loadOverview();if(!$('admin-audit-section').hidden)loadAudit();else loadUsers(offset);});
-  $('open-users').addEventListener('click',()=>{if(!permitted)return;$('account-dialog').close();dialog.showModal();listView(true);loadOverview();});
+  $('open-users').addEventListener('click',openPendingRequests);
   return {
+    openRequestedView(){
+      if(!reviewRequested||$('huellas-app').hidden||!permitted)return false;
+      if(!openPendingRequests())return false;
+      reviewRequested=false;
+      if(location.hash==='#solicitudes-pendientes')history.replaceState(history.state,'',location.pathname+location.search);
+      return true;
+    },
     setSession(session){
       const previous=role;role=session.access?.role||'user';permitted=session.isAdmin===true&&session.access?.status==='approved';
       $('open-users').hidden=!permitted;$('admin-roles').hidden=!permitted||role!=='owner';$('admin-audit').hidden=!permitted||role!=='owner';
-      if(!permitted){++ticket;++overviewTicket;++auditTicket;clearTimeout(searchTimer);if(confirm.open)confirm.close();if(dialog.open)dialog.close();users=[];$('users-rows').replaceChildren();$('admin-metrics').replaceChildren();$('admin-distribution').replaceChildren();$('admin-audit-list').replaceChildren();}
+      if(!permitted){++ticket;++overviewTicket;++auditTicket;clearTimeout(searchTimer);if(confirm.open)confirm.close();if(dialog.open)dialog.close();users=[];$('users-rows').replaceChildren();$('admin-metrics').replaceChildren();$('admin-distribution').replaceChildren();$('admin-audit-list').replaceChildren();$('admin-pending-count').textContent='0';}
       else if(previous!==role&&dialog.open){if(role!=='owner'&&!$('admin-audit-section').hidden)listView(false);renderUsers();}
+      // Reuse the existing 30-second authorization check; no extra background
+      // polling while the panel is closed, hidden or confirming an action.
+      if(permitted&&dialog.open&&!document.hidden&&!busy&&!confirm.open)loadOverview();
     },
   };
 }

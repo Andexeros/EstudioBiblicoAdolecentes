@@ -25,7 +25,7 @@
   <link rel="stylesheet" href="legal.css?v=20261021-legal1">
   <script type="module" src="install.js?v=20261019"></script>
   <script type="module" src="art-word-fit.js?v=20261026-word-fit1"></script>
-  <script type="module" src="auth.js?v=20261021-welcome-existing1"></script>
+  <script type="module" src="auth.js?v=20261030-pending-request1"></script>
   <script type="module" src="music.js?v=20261021-music-end1"></script>
 </head>
 <body>
@@ -123,7 +123,7 @@
     <header class="auth-dialog-heading"><div><p class="auth-eyebrow">ADMINISTRACIÓN</p><h2 id="users-title">Cuidamos esta comunidad.</h2></div><button id="close-users" class="circle-button" type="button" aria-label="Cerrar administración" autofocus><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></header>
     <div class="ha-summary-heading"><p class="auth-users-help">Solicitudes, cuentas y grupos de Huellas.</p><button id="admin-refresh" class="auth-link" type="button">Actualizar</button></div>
     <div id="admin-metrics" class="ha-metrics" aria-label="Resumen de cuentas"></div><div id="admin-distribution" class="ha-distribution" aria-label="Distribución por grupo"></div>
-    <nav class="ha-tabs" aria-label="Secciones de administración"><button id="admin-pending" type="button" aria-pressed="true">Solicitudes pendientes <span id="admin-pending-count"></span></button><button id="admin-all" type="button" aria-pressed="false">Todos los usuarios</button><button id="admin-roles" type="button" hidden>Gestionar administradores</button><button id="admin-audit" type="button" aria-pressed="false" hidden>Historial</button></nav>
+    <nav class="ha-tabs" aria-label="Secciones de administración"><button id="admin-pending" type="button" aria-pressed="true">Solicitudes pendientes <span id="admin-pending-count" role="status" aria-live="polite" aria-atomic="true">0</span></button><button id="admin-all" type="button" aria-pressed="false">Todos los usuarios</button><button id="admin-roles" type="button" hidden>Gestionar administradores</button><button id="admin-audit" type="button" aria-pressed="false" hidden>Historial</button></nav>
     <p id="users-message" class="auth-message" role="status" aria-live="polite"></p>
     <section id="admin-list-section" aria-labelledby="admin-list-title"><h3 id="admin-list-title" class="ha-section-title">Solicitudes pendientes</h3>
       <form id="admin-filters" class="ha-filters" role="search"><label class="ha-search">Buscar por nombre o correo<input id="users-search" type="search" maxlength="160" placeholder="Nombre o correo" autocomplete="off"></label><label>Estado<select id="users-status-filter"><option value="">Todos</option><option value="pending" selected>Pendientes</option><option value="approved">Aprobados</option><option value="rejected">Rechazados</option><option value="blocked">Bloqueados</option></select></label><label>Grupo<select id="users-group-filter"><option value="">Todos los grupos</option></select></label><label>Rol<select id="users-role-filter"><option value="">Todos los roles</option><option value="user">Usuario</option><option value="admin">Administrador</option><option value="owner">Propietario</option></select></label><label>Ordenar<select id="users-sort"><option value="registered_desc">Registro: más recientes</option><option value="registered_asc">Registro: más antiguos</option><option value="last_seen_desc">Último acceso: reciente</option><option value="last_seen_asc">Último acceso: antiguo</option></select></label></form>
