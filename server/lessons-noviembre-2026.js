@@ -49,7 +49,7 @@ export const lessonEnvidia = fromPresentation('Clase La Envidia_20261106_212248_
     },
     {
       title: 'Frená la comparación antes de convertirla en rivalidad.',
-      text: 'Compararte puede mostrarte qué valorás. Si alimentás el malestar, puede crecer el resentimiento. Jesús enseña que la envidia puede salir del corazón; por eso vale la pena reconocerla temprano.',
+      text: 'Compararte puede mostrarte qué valorás. Si alimentás el malestar, puede crecer el resentimiento. Jesús enseña que la envidia sale del corazón; por eso vale la pena reconocerla temprano.',
       ref: 'Marcos 7:21–23',
     },
     {
@@ -99,7 +99,7 @@ export const lessonEnvidia = fromPresentation('Clase La Envidia_20261106_212248_
   minutes: 5,
 }, [
   ['Éxodo 20:17', 'La diferencia entre desear y codiciar lo ajeno'],
-  ['Marcos 7:21–23', 'La envidia que puede salir del corazón'],
+  ['Marcos 7:21–23', 'La envidia sale del corazón'],
   ['1 Samuel 18:6–12', 'Saúl y David: del reconocimiento a la agresión'],
   ['Proverbios 14:30', 'El efecto de la envidia en la vida interior'],
   ['Santiago 3:14–16', 'El desorden que producen la envidia y la rivalidad'],
@@ -192,7 +192,7 @@ export const lessonEstoicismoEvangelio = fromPresentation('Clase Estoi co-n Cris
     {
       title: 'Autoayuda: del hábito a la obediencia',
       items: [
-        { title: 'Reconocé las herramientas', text: 'La presentación identifica cuatro: disciplina para sostener hábitos, autoconocimiento para reconocer límites y fortalezas, superación para trabajar hacia metas y autonomía para resolver problemas.' },
+        { title: 'Reconocé las herramientas', text: 'Cuatro herramientas para crecer: disciplina para sostener hábitos, autoconocimiento para reconocer límites y fortalezas, superación para trabajar hacia metas y autonomía para resolver problemas.' },
         { title: 'Pasá de escuchar a hacer', text: 'El crecimiento cristiano se vuelve concreto cuando practicamos la Palabra. Pensá qué hábito podría ayudarte a responder a lo que Dios ya te mostró.', ref: 'Santiago 1:22' },
       ],
     },
