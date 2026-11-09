@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile, stat } from 'node:fs/promises';
 import { lessons } from '../lessons.js';
 import { lessonsIntermedioGrande2026 as added } from '../server/lessons-2026.js';
+import { lessonEnvidia, lessonEstoicismoEvangelio } from '../server/lessons-noviembre-2026.js';
 import { studyLessons, studyForGroup, studyAssignments, studyCollections } from '../server/studies.js';
 
 const ids = ['santa-cena', 'defendiendo-mi-fe', 'amigo-de-jesus', 'naaman-logica-de-dios',
@@ -10,21 +11,24 @@ const ids = ['santa-cena', 'defendiendo-mi-fe', 'amigo-de-jesus', 'naaman-logica
   'oracion-perseverante', 'angeles-y-el-hombre', 'historia-iglesia-personajes', 'historia-asamblea-cristiana', 'santa-cena-octubre'];
 const get = id => added.find(lesson => lesson.id === id);
 
-test('both new collections share the same objects in the approved order without duplicating content', () => {
+test('the collections preserve their previous order and append the assigned November studies once', () => {
   assert.deepEqual(added.map(lesson => lesson.id), ids);
   const intermedio = studyForGroup('intermedio'), grande = studyForGroup('grande');
-  assert.deepEqual(intermedio.lessons.map(lesson => lesson.id), ids);
-  assert.deepEqual(grande.lessons.map(lesson => lesson.id), ids);
+  assert.deepEqual(intermedio.lessons.map(lesson => lesson.id), [...ids, lessonEstoicismoEvangelio.id]);
+  assert.deepEqual(grande.lessons.map(lesson => lesson.id), [...ids, lessonEstoicismoEvangelio.id]);
   for (let i = 0; i < ids.length; i++) {
     assert.equal(intermedio.lessons[i], grande.lessons[i]);
     assert.equal(grande.lessons[i], added[i]);
   }
-  assert.equal(new Set(studyLessons.map(lesson => lesson.id)).size, 28);
+  assert.equal(intermedio.lessons.at(-1), lessonEstoicismoEvangelio);
+  assert.equal(grande.lessons.at(-1), lessonEstoicismoEvangelio);
+  assert.equal(studyLessons.length, 30);
+  assert.equal(new Set(studyLessons.map(lesson => lesson.id)).size, studyLessons.length);
   const adolescentes = studyForGroup('adolescentes').lessons;
   assert.deepEqual(adolescentes.slice(0, lessons.length), lessons);
-  assert.deepEqual(adolescentes.slice(lessons.length), [get('santa-cena'), get('santa-cena-octubre')]);
+  assert.deepEqual(adolescentes.slice(lessons.length), [get('santa-cena'), get('santa-cena-octubre'), lessonEnvidia]);
   assert.equal(adolescentes[lessons.length], intermedio.lessons[0]);
-  assert.equal(adolescentes.at(-1), intermedio.lessons.at(-1));
+  assert.equal(adolescentes[lessons.length + 1], intermedio.lessons[ids.length - 1]);
   assert(lessons.every(lesson => !ids.includes(lesson.id)));
 });
 
@@ -72,7 +76,7 @@ test('April keeps its route and October shares its artwork as a distinct study i
   for (const group of ['adolescentes', 'intermedio', 'grande']) {
     const collection = studyForGroup(group).lessons;
     assert.equal(collection.find(lesson => lesson.id === 'santa-cena'), april);
-    assert.equal(collection.at(-1), october);
+    assert.equal(collection.at(-2), october);
     assert.equal(collection.filter(lesson => lesson.id === october.id).length, 1);
   }
 });
@@ -143,4 +147,37 @@ test('future separate assignments, years, drafts and empty collections keep work
   assert.deepEqual(studyForGroup('intermedio', '2027', studyLessons, assignments, [...studyCollections, future]).lessons, [added[0]]);
   assert.equal(studyForGroup('grande', '', studyLessons, assignments, [...studyCollections, future]).collection.id, '2026');
   assert.deepEqual(studyForGroup('intermedio', '2026', studyLessons, [], studyCollections).lessons, []);
+});
+
+test('November preserves the Bible passages and original presentations for both new studies', () => {
+  const expected = [
+    [lessonEnvidia, 'Clase La Envidia_20261106_212248_0000.pdf', [
+      'Éxodo 20:17', 'Marcos 7:21–23', '1 Samuel 18:6–12', 'Proverbios 14:30', 'Santiago 3:14–16', 'Gálatas 5:19–21',
+      '1 Corintios 13:4', '1 Corintios 12:26', '1 Timoteo 6:6–8', 'Romanos 12:15', 'Gálatas 5:22–23', 'Lucas 15:25–32',
+    ]],
+    [lessonEstoicismoEvangelio, 'Clase Estoi co-n Cristo_20261109_131627_0000.pdf', [
+      'Gálatas 6:9', 'Romanos 12:2', 'Santiago 1:22', 'Filipenses 4:8', '1 Tesalonicenses 5:18', '1 Juan 5:14',
+      'Santiago 1:19–20', '1 Pedro 5:7', 'Santiago 1:2–4', 'Mateo 16:24', 'Juan 3:26–30', 'Gálatas 2:20',
+    ]],
+  ];
+  for (const [lesson, source, passages] of expected) {
+    assert.deepEqual(lesson.sourceFiles, [source]);
+    assert.deepEqual(lesson.references.map(ref => ref.label), passages);
+    for (const ref of lesson.references) assert.deepEqual(ref.sources, [source]);
+    for (const label of [
+      lesson.anchor.reference, ...lesson.timeline.map(step => step.ref), ...lesson.points.map(point => point.ref),
+      ...lesson.extra.flatMap(section => section.items.map(item => item.ref)),
+    ].filter(Boolean)) assert(passages.includes(label), `${lesson.id}: missing ${label}`);
+  }
+});
+
+test('the two November illustrations share a transparent 3 by 2 atlas with distinct cells', async () => {
+  assert.deepEqual(lessonEnvidia.art, ['g', 0]);
+  assert.deepEqual(lessonEstoicismoEvangelio.art, ['g', 1]);
+  const bytes = await readFile(new URL('../atlas-g.webp', import.meta.url));
+  assert.equal(bytes.subarray(0, 4).toString(), 'RIFF');
+  assert.equal(bytes.subarray(8, 16).toString(), 'WEBPVP8X');
+  assert(bytes[20] & 0x10, 'alpha flag');
+  assert.equal(bytes.readUIntLE(24, 3) + 1, 1536);
+  assert.equal(bytes.readUIntLE(27, 3) + 1, 1024);
 });

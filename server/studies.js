@@ -1,10 +1,11 @@
 import { lessons } from '../lessons.js';
 import { lessonsIntermedioGrande2026 } from './lessons-2026.js';
+import { lessonEnvidia, lessonEstoicismoEvangelio } from './lessons-noviembre-2026.js';
 import { groupById } from '../groups.js';
 import { HttpError } from './http.js';
 
 // Full content exists once; assignments can share it across groups and collections.
-export const studyLessons = [...lessons, ...lessonsIntermedioGrande2026];
+export const studyLessons = [...lessons, ...lessonsIntermedioGrande2026, lessonEnvidia, lessonEstoicismoEvangelio];
 export const studyCollections = [{ id: '2026', label: 'Colección 2026', year: 2026 }];
 export const studyAssignments = [
   ...[
@@ -15,6 +16,8 @@ export const studyAssignments = [
   ...lessonsIntermedioGrande2026.map((lesson, index) => ({ lessonId: lesson.id, groupIds: ['intermedio', 'grande'], collectionId: '2026', order: index + 1, published: true })),
   { lessonId: 'santa-cena', groupIds: ['adolescentes'], collectionId: '2026', order: lessons.length + 1, published: true },
   { lessonId: 'santa-cena-octubre', groupIds: ['adolescentes'], collectionId: '2026', order: lessons.length + 2, published: true },
+  { lessonId: lessonEnvidia.id, groupIds: ['adolescentes'], collectionId: '2026', order: lessons.length + 3, published: true },
+  { lessonId: lessonEstoicismoEvangelio.id, groupIds: ['intermedio', 'grande'], collectionId: '2026', order: lessonsIntermedioGrande2026.length + 1, published: true },
   // Add future assignment objects here; groupIds may contain several groups.
 ];
 

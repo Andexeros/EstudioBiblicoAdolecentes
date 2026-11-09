@@ -131,21 +131,22 @@ test('administrative group filters are validated and parameterized; unassigned u
   const count = queries.length;
   await reject(usersEndpoint(request('/api/users?group=admin'), config), 'INVALID_GROUP'); assert.equal(queries.length, count + 1, 'fresh authorization still runs before rejecting a filter');
 });
-test('Adolescentes preserves the original 15 classes and appends the shared April and October Santa Cena studies', () => {
+test('Adolescentes preserves the original 15 classes and the shared Santa Cena studies, then adds La envidia', () => {
   const study = studyForGroup('adolescentes'); assert.deepEqual(study.lessons.slice(0, lessons.length), lessons);
   for (let index = 0; index < lessons.length; index++) assert.equal(study.lessons[index], lessons[index]);
   assert.equal(study.lessons.slice(0, lessons.length).reduce((total, lesson) => total + lesson.references.length, 0), 161);
-  assert.equal(study.lessons.length, 17);
-  assert.deepEqual(study.lessons.slice(lessons.length).map(lesson => lesson.id), ['santa-cena', 'santa-cena-octubre']);
-  for (const cena of study.lessons.slice(lessons.length)) {
+  assert.equal(study.lessons.length, 18);
+  assert.deepEqual(study.lessons.slice(lessons.length).map(lesson => lesson.id), ['santa-cena', 'santa-cena-octubre', 'la-envidia']);
+  for (const cena of study.lessons.slice(lessons.length, -1)) {
     for (const group of ['intermedio', 'grande']) assert.equal(studyForGroup(group).lessons.find(lesson => lesson.id === cena.id), cena);
   }
-  assert.equal(studyAssignments.filter(item => item.groupIds.includes('adolescentes')).length, 17);
+  assert.equal(studyAssignments.filter(item => item.groupIds.includes('adolescentes')).length, 18);
 });
-test('Intermedio and Grande share thirteen classes with valid collection metadata and their official names', () => {
+test('Intermedio and Grande share fourteen classes with valid collection metadata and their official names', () => {
   for (const id of ['intermedio', 'grande']) {
     const study = studyForGroup(id); assert.equal(study.groupName, groupLabel(id));
-    assert.equal(study.lessons.length, 13); assert.equal(study.collection.id, '2026'); assert.equal(study.collections.length, 1);
+    assert.equal(study.lessons.length, 14); assert.equal(study.collection.id, '2026'); assert.equal(study.collections.length, 1);
+    assert.equal(study.lessons.at(-1).id, 'estoicismo-y-evangelio');
   }
   assert.equal(groupLabel('grande'), 'Grupo Grande');
 });
