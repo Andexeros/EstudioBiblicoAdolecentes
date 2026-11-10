@@ -131,13 +131,15 @@ test('administrative group filters are validated and parameterized; unassigned u
   const count = queries.length;
   await reject(usersEndpoint(request('/api/users?group=admin'), config), 'INVALID_GROUP'); assert.equal(queries.length, count + 1, 'fresh authorization still runs before rejecting a filter');
 });
-test('Adolescentes preserves the original 15 classes and the shared Santa Cena studies, then adds La envidia', () => {
-  const study = studyForGroup('adolescentes'); assert.deepEqual(study.lessons.slice(0, lessons.length), lessons);
-  for (let index = 0; index < lessons.length; index++) assert.equal(study.lessons[index], lessons[index]);
-  assert.equal(study.lessons.slice(0, lessons.length).reduce((total, lesson) => total + lesson.references.length, 0), 161);
+test('Adolescentes opens with La envidia and retains the original 15 classes and the shared Santa Cena studies', () => {
+  const study = studyForGroup('adolescentes');
+  const original = study.lessons.slice(-lessons.length);
+  assert.equal(original.length, lessons.length);
+  for (const [index, lesson] of lessons.toReversed().entries()) assert.equal(original[index], lesson);
+  assert.equal(original.reduce((total, lesson) => total + lesson.references.length, 0), 161);
   assert.equal(study.lessons.length, 18);
-  assert.deepEqual(study.lessons.slice(lessons.length).map(lesson => lesson.id), ['santa-cena', 'santa-cena-octubre', 'la-envidia']);
-  for (const cena of study.lessons.slice(lessons.length, -1)) {
+  assert.deepEqual(study.lessons.slice(0, 3).map(lesson => lesson.id), ['la-envidia', 'santa-cena-octubre', 'santa-cena']);
+  for (const cena of study.lessons.slice(1, 3)) {
     for (const group of ['intermedio', 'grande']) assert.equal(studyForGroup(group).lessons.find(lesson => lesson.id === cena.id), cena);
   }
   assert.equal(studyAssignments.filter(item => item.groupIds.includes('adolescentes')).length, 18);
@@ -146,20 +148,20 @@ test('Intermedio and Grande share fourteen classes with valid collection metadat
   for (const id of ['intermedio', 'grande']) {
     const study = studyForGroup(id); assert.equal(study.groupName, groupLabel(id));
     assert.equal(study.lessons.length, 14); assert.equal(study.collection.id, '2026'); assert.equal(study.collections.length, 1);
-    assert.equal(study.lessons.at(-1).id, 'estoicismo-y-evangelio');
+    assert.equal(study.lessons[0].id, 'estoicismo-y-evangelio');
   }
   assert.equal(groupLabel('grande'), 'Grupo Grande');
 });
 test('future years, shared assignments, ordering and unpublished studies need only content configuration', () => {
   const source = [{ id: 'one' }, { id: 'two' }, { id: 'draft' }];
   const assignments = [
-    { lessonId: 'one', groupIds: ['adolescentes', 'grande'], collectionId: '2027', order: 2, published: true },
     { lessonId: 'two', groupIds: ['adolescentes'], collectionId: '2027', order: 1, published: true },
-    { lessonId: 'draft', groupIds: ['adolescentes'], collectionId: '2027', order: 0, published: false },
+    { lessonId: 'one', groupIds: ['adolescentes', 'grande'], collectionId: '2027', order: 2, published: true },
+    { lessonId: 'draft', groupIds: ['adolescentes'], collectionId: '2027', order: 3, published: false },
     { lessonId: 'one', groupIds: ['adolescentes'], collectionId: '2026', order: 1, published: true },
   ];
   const collections = [{ id: '2026', year: 2026 }, { id: '2027', year: 2027 }];
-  assert.deepEqual(studyForGroup('adolescentes', '', source, assignments, collections).lessons, [source[1], source[0]]);
+  assert.deepEqual(studyForGroup('adolescentes', '', source, assignments, collections).lessons, [source[0], source[1]]);
   assert.equal(studyForGroup('adolescentes', '', source, assignments, collections).collection.id, '2027');
   assert.deepEqual(studyForGroup('grande', '2027', source, assignments, collections).lessons, [source[0]]);
   assert.deepEqual(studyForGroup('adolescentes', '2026', source, assignments, collections).lessons, [source[0]]);

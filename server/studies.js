@@ -33,7 +33,7 @@ export function studyForGroup(groupId, collectionId = '', source = studyLessons,
   const byId = new Map(source.map(lesson => [lesson.id, lesson]));
   const seen = new Set();
   const selected = assignments.filter(item => item.published === true && item.groupIds.includes(groupId) && item.collectionId === collection.id)
-    .sort((a, b) => a.order - b.order || a.lessonId.localeCompare(b.lessonId))
+    .sort((a, b) => b.order - a.order || a.lessonId.localeCompare(b.lessonId))
     .flatMap(item => { const lesson = byId.get(item.lessonId); if (!lesson || seen.has(item.lessonId)) return []; seen.add(item.lessonId); return [lesson]; });
   return { groupId, groupName: group.name, collection, collections: available, lessons: selected };
 }

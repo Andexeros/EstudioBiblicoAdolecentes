@@ -77,10 +77,12 @@ Las asociaciones se administran en **`server/studies.js`**:
 Para una clase futura, agregá su contenido completo a `lessons.js` y una asociación como esta, usando el identificador real de la clase que incorporemos:
 
 ```js
-{ lessonId: 'id-real-de-la-clase', groupIds: ['intermedio'], collectionId: '2026', order: 1, published: true }
+{ lessonId: 'id-real-de-la-clase', groupIds: ['intermedio'], collectionId: '2026', order: 15, published: true }
 ```
 
 Para compartir ese mismo contenido con Grupo Grande, usá `groupIds: ['intermedio', 'grande']`. No dupliques el objeto de la clase. `published: false` impide incluirla en las respuestas del catálogo.
+
+Al publicar una clase nueva, dale un `order` mayor al de las clases existentes en ese grupo y colección. El catálogo las muestra de mayor a menor y el inicio de Huellas abre la más reciente. Los enlaces a una clase concreta conservan su destino.
 
 Para una colección nueva, agregá por ejemplo `{ id: '2027', label: 'Colección 2027', year: 2027 }` a `studyCollections` y sus asociaciones. La colección más reciente disponible se abre inicialmente; cuando haya varias, el catálogo mostrará un selector de colección. Las cantidades, el orden y la navegación se calculan automáticamente.
 

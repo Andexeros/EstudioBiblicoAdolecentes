@@ -22,9 +22,11 @@ function parseRoute() {
   let fragment;
   try { fragment = decodeURIComponent(location.hash.slice(1)); }
   catch { fragment = ''; }
-  const [id, section = ''] = fragment.split('/');
+  const [id, requestedSection = ''] = fragment.split('/');
   const found = lessons.findIndex(l => l.id === id);
-  return { index: found < 0 ? 0 : found, section: ['historia','claves','conclusion','referencias'].includes(section) ? section : '' };
+  if (found < 0) return { index: 0, section: '', hash: '' };
+  const section = ['historia','claves','conclusion','referencias'].includes(requestedSection) ? requestedSection : '';
+  return { index: found, section, hash: '#' + id + (section ? '/' + section : '') };
 }
 
 function navigate(index, section = '') {
@@ -187,11 +189,10 @@ function update(nextLessons, study = {}) {
   $('catalog-collection').textContent = `${name} · ${label}`;
   $('open-catalog').querySelector('span').textContent = lessons.length ? `${lessons.length === 1 ? 'La clase' : 'Las ' + lessons.length + ' clases'}` : 'Mis estudios';
   document.querySelector('.site-footer p').textContent = `${name} · ${label}`;
-  for (const link of document.querySelectorAll('.brand,.footer-brand')) link.setAttribute('href', lessons.length ? '#' + lessons[0].id : '#');
   for (const id of ['previous-lesson', 'next-lesson']) $(id).disabled = lessons.length < 2;
   const route = parseRoute(); currentIndex = route.index; currentSection = route.section;
-  const canonical = empty ? '' : '#' + lessons[currentIndex].id + (currentSection ? '/' + currentSection : '');
-  if (location.hash !== canonical) history.replaceState(null, '', location.pathname + location.search + canonical);
+  // Keep the home URL independent of whichever lesson is newest today.
+  if (location.hash !== route.hash) history.replaceState(null, '', location.pathname + location.search + route.hash);
   revealObserver?.disconnect(); sectionObserver?.disconnect();
   if (empty) {
     art?.stop(); $('lesson-content').replaceChildren(); $('lesson-dots').replaceChildren();
