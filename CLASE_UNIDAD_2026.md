@@ -10,7 +10,7 @@ Clase compartida por Adolescentes, Grupo Intermedio y Grupo Grande. Se guarda un
 - **Para profundizar:** del muro al encuentro. Reconocer barreras, responder con acciones y cuidar los vínculos después de cada encuentro.
 - **Conclusión:** Cristo es nuestra paz. Preparar el corazón, dar el primer paso y cultivar relaciones sinceras.
 - **Aplicación:** identificar una actitud propia que genera distancia y acercarse a alguien con un gesto concreto de escucha, invitación o acompañamiento.
-- **Referencias:** los 15 pasajes citados en el PDF, disponibles con sus enlaces bíblicos.
+- **Referencias:** los 15 pasajes citados en el PDF y Hechos 13:9, que acompaña la aclaración sobre los nombres Saulo y Pablo, disponibles con sus enlaces bíblicos.
 
 La actividad inicial se adapta como una reflexión sobre barreras y respuestas. No se copian mensajes del muro, nombres de participantes, bromas ni datos de la actividad externa. Se conserva el contexto de Efesios 2:14 sobre judíos y gentiles antes de su aplicación a nuestras relaciones.
 
@@ -26,6 +26,6 @@ No se requieren migraciones SQL, variables nuevas ni cambios en Neon, Vercel, la
 
 1. Ejecutar `npm ci --omit=peer`, `npm test` y `npm run build`.
 2. Ingresar con una cuenta aprobada de cada grupo: La unidad debe aparecer primero, tanto en la portada como en el catálogo.
-3. Revisar historia, puntos clave, las tres secciones desplegables, conclusión y los 15 enlaces bíblicos.
+3. Revisar historia, puntos clave, las tres secciones desplegables, conclusión y los 16 enlaces bíblicos.
 4. Cambiar de clase por flechas y catálogo; verificar el armado del muro en escritorio y celular y el modo de movimiento reducido.
 5. Confirmar que las clases anteriores mantienen su contenido, música y navegación y que una cuenta sin aprobación no obtiene el estudio.

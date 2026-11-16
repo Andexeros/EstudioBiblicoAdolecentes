@@ -2,6 +2,7 @@
 // los endpoints de estudios, con sesión verificada y cuenta aprobada.
 const source = 'Clase la unidad(1).pdf';
 const passages = [
+  ['Hechos 13:9', 'Saulo también es llamado Pablo: dos nombres de la misma persona'],
   ['Hechos 9:26', 'El temor de los discípulos ante la llegada de Saulo'],
   ['Hechos 9:27–28', 'Bernabé se acerca, presenta a Saulo y facilita su integración'],
   ['Juan 17:20–21', 'Jesús pide que quienes creen en Él sean uno'],
@@ -27,7 +28,7 @@ export const lessonUnidad = {
   description: 'Prejuicios, orgullo y distancias pueden separarnos. En Cristo aprendemos a recibirnos, cuidarnos y vivir como un solo cuerpo.',
   summary: 'Una hermandad que empieza al acercarnos.',
   storyTitle: 'Saulo y Bernabé: alguien decidió dar el primer paso.',
-  story: 'Cuando Saulo llegó a Jerusalén, quiso juntarse con los discípulos, pero ellos le tenían miedo y no creían que fuera un discípulo. Su pasado de persecución hacía comprensible esa reacción. Bernabé se acercó, lo llevó a los apóstoles y contó cómo había conocido al Señor y predicado con valentía. No ignoró lo ocurrido: ayudó a reconocer la transformación de Saulo. Así, quien encontraba distancia pudo estar con ellos. Su ejemplo nos invita a escuchar, conocer y acompañar a las personas antes de encerrarlas en una idea sobre su pasado o su congregación.',
+  story: 'Cuando Saulo llegó a Jerusalén, quiso juntarse con los discípulos, pero ellos le tenían miedo y no creían que fuera un discípulo. Su pasado de persecución hacía comprensible esa reacción. Bernabé se acercó, lo llevó a los apóstoles y contó cómo había conocido al Señor y predicado con valentía. No ignoró lo ocurrido: ayudó a reconocer la transformación de Saulo. Así, quien encontraba distancia pudo estar con ellos. Su ejemplo nos invita a escuchar, conocer y acompañar a las personas antes de encerrarlas en una idea sobre su pasado o su congregación. Una aclaración: Saulo y Pablo son la misma persona, y está bien llamarlo de ambas maneras. Saulo es la forma de su nombre hebreo, Saúl; Pablo corresponde a su nombre latino, Paulus. Es común pensar que Jesús le cambió el nombre de Saulo a Pablo cuando se convirtió, pero la Biblia no relata ese cambio: Hechos 13:9 lo presenta como «Saulo, que también es Pablo». No son dos etapas de su nombre ni dos personas distintas.',
   timeline: [
     {
       title: 'El deseo de pertenecer',

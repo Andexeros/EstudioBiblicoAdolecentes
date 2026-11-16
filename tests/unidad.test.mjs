@@ -17,7 +17,7 @@ test('La unidad opens all three groups from one shared study without duplicating
 
 test('La unidad preserves every cited Bible passage and links all its reading sections', () => {
   const passages = [
-    'Hechos 9:26', 'Hechos 9:27–28', 'Juan 17:20–21', 'Romanos 15:7', 'Mateo 18:4',
+    'Hechos 13:9', 'Hechos 9:26', 'Hechos 9:27–28', 'Juan 17:20–21', 'Romanos 15:7', 'Mateo 18:4',
     'Romanos 12:9–10', '1 Corintios 12:12–13', '1 Corintios 12:25–27', 'Efesios 4:1–6',
     'Gálatas 5:22–23', 'Lucas 11:13', 'Hechos 2:42, 46–47', '1 Pedro 3:8', 'Mateo 18:15', 'Efesios 2:14',
   ];
