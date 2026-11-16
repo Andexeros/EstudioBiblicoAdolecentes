@@ -4,6 +4,7 @@ import { readFile, stat } from 'node:fs/promises';
 import { lessons } from '../lessons.js';
 import { lessonsIntermedioGrande2026 as added } from '../server/lessons-2026.js';
 import { lessonEnvidia, lessonEstoicismoEvangelio } from '../server/lessons-noviembre-2026.js';
+import { lessonUnidad } from '../server/lessons-unidad-2026.js';
 import { studyLessons, studyForGroup, studyAssignments, studyCollections } from '../server/studies.js';
 
 const ids = ['santa-cena', 'defendiendo-mi-fe', 'amigo-de-jesus', 'naaman-logica-de-dios',
@@ -14,18 +15,18 @@ const get = id => added.find(lesson => lesson.id === id);
 test('the collections open with their assigned November studies and list all classes newest first', () => {
   assert.deepEqual(added.map(lesson => lesson.id), ids);
   const intermedio = studyForGroup('intermedio'), grande = studyForGroup('grande');
-  const expected = [lessonEstoicismoEvangelio, ...added.toReversed()];
+  const expected = [lessonUnidad, lessonEstoicismoEvangelio, ...added.toReversed()];
   for (const { lessons: selected } of [intermedio, grande]) {
     assert.equal(selected.length, expected.length);
     for (const [index, lesson] of expected.entries()) assert.equal(selected[index], lesson);
   }
-  assert.equal(studyLessons.length, 30);
+  assert.equal(studyLessons.length, 31);
   assert.equal(new Set(studyLessons.map(lesson => lesson.id)).size, studyLessons.length);
   const adolescentes = studyForGroup('adolescentes').lessons;
-  assert.deepEqual(adolescentes.slice(0, 3), [lessonEnvidia, get('santa-cena-octubre'), get('santa-cena')]);
-  assert.deepEqual(adolescentes.slice(3), lessons.toReversed());
-  assert.equal(adolescentes[1], intermedio.lessons[1]);
-  assert.equal(adolescentes[2], intermedio.lessons.at(-1));
+  assert.deepEqual(adolescentes.slice(0, 4), [lessonUnidad, lessonEnvidia, get('santa-cena-octubre'), get('santa-cena')]);
+  assert.deepEqual(adolescentes.slice(4), lessons.toReversed());
+  assert.equal(adolescentes[2], intermedio.lessons[2]);
+  assert.equal(adolescentes[3], intermedio.lessons.at(-1));
   assert(lessons.every(lesson => !ids.includes(lesson.id)));
 });
 
@@ -73,7 +74,7 @@ test('April keeps its route and October shares its artwork as a distinct study i
   for (const group of ['adolescentes', 'intermedio', 'grande']) {
     const collection = studyForGroup(group).lessons;
     assert.equal(collection.find(lesson => lesson.id === 'santa-cena'), april);
-    assert.equal(collection[1], october);
+    assert.equal(collection[2], october);
     assert.equal(collection.filter(lesson => lesson.id === october.id).length, 1);
   }
 });
