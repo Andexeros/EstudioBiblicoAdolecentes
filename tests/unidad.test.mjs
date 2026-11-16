@@ -34,8 +34,8 @@ test('La unidad preserves every cited Bible passage and links all its reading se
 });
 
 test('La unidad uses a separate transparent atlas that fits the existing geometric animation', async () => {
-  assert.deepEqual(lessonUnidad.art, ['h-v2', 0]);
-  const bytes = await readFile(new URL('../atlas-h-v2.webp', import.meta.url));
+  assert.deepEqual(lessonUnidad.art, ['h-v3', 0]);
+  const bytes = await readFile(new URL('../atlas-h-v3.webp', import.meta.url));
   assert.equal(bytes.subarray(0, 4).toString(), 'RIFF');
   assert.equal(bytes.subarray(8, 16).toString(), 'WEBPVP8X');
   assert(bytes[20] & 0x10, 'transparent alpha channel');
