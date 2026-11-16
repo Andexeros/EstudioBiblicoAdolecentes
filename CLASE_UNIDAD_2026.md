@@ -16,7 +16,7 @@ La actividad inicial se adapta como una reflexión sobre barreras y respuestas. 
 
 ## Ilustración y navegación
 
-`atlas-h.webp` contiene un muro geométrico turquesa abierto con un camino dorado. Usa el mismo sistema de armado, partículas, interacción con el cursor y movimiento reducido de las ilustraciones existentes. El arte anterior no se modifica. La instrucción de creación se conserva en la entrada `H` de `artwork-prompts.json`.
+`atlas-h-v2.webp` muestra un muro de ladrillos rectangulares con juntas visibles, roto en el centro por dos manos que se estrechan. Los ladrillos desprendidos representan las barreras que caen al recibirnos como hermanos. Usa el mismo sistema de armado, partículas, interacción con el cursor y movimiento reducido de las ilustraciones existentes. La nueva ruta del recurso permite cargar la ilustración actualizada al reabrir la clase. La instrucción de creación se conserva en la entrada `H` de `artwork-prompts.json`.
 
 La clase aparece primera en la colección 2026 de los tres grupos. Los totales son 19 clases en Adolescentes y 15 en cada uno de los otros grupos. Los enlaces anteriores siguen funcionando; el enlace de esta clase es `/#la-unidad`.
 
